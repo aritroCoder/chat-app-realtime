@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { BsEmojiSmile, BsFillMicFill } from 'react-icons/bs';
 import { ImAttachment } from 'react-icons/im';
 import AttachmentMenu from './AttachmentMenu';
@@ -17,9 +17,10 @@ const Chatinput = ({handleSendMessage,setNewMessage,newMessage}) => {
         if (selectedFile) {
             // Convert the selected file to a blob URL
             const blobUrl = URL.createObjectURL(selectedFile);
-            console.log(fileType)
             setNewMessage({ type: fileType, url: blobUrl });
+            handleSendMessage();
         }
+        handleSendMessage();
 
         setShowAttachmentMenu(false);
 
@@ -27,6 +28,12 @@ const Chatinput = ({handleSendMessage,setNewMessage,newMessage}) => {
             fileInputRef.current.value = null;
         }
     };
+    useEffect(() => {
+        if (typeof newMessage !== 'string') {
+            handleSendMessage(); 
+        }     
+    }, [newMessage])
+    
   return (
       <div className="bg-white dark:bg-color-surface-100 absolute bottom-0 w-[100%] p-4 px-3">
           <div className="flex">
@@ -42,7 +49,6 @@ const Chatinput = ({handleSendMessage,setNewMessage,newMessage}) => {
               >
                   <ImAttachment />
               </button>
-              {/* <div className='absolute bottom-[4.5rem] w-16 h-48 left-14 bg-color-surface-200'></div> */}
               {showAttachmentMenu && (
                   <AttachmentMenu
                       onImageClick={() => {
