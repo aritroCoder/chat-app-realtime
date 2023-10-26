@@ -1,12 +1,12 @@
 'use client';
-import Image from 'next/image'
+import LoginWithGoogle from "./components/auth/LoginWithGoogle";
 
 // buid basic chat app UI
 
 export default function Home() {
   return (
     <div className="container">
-      Hi
+      <LoginWithGoogle />
     </div>
   )
 }

@@ -1,6 +1,9 @@
 "use client";
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { socket } from '../utils/socket';
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from '../utils/firebase';
 
 import { BsEmojiSmile, BsFillMicFill, BsFillCameraVideoFill } from 'react-icons/bs';
 import { ImAttachment } from 'react-icons/im';
@@ -12,23 +15,29 @@ import Chatbubble from '../components/chatpage/Chatbubble';
 import Chatinput from '../components/chatpage/Chatinput';
 
 const ChatApp = () => {
+    const { push } = useRouter();
     const [isConnected, setIsConnected] = useState(socket.connected);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [user, setUser] = useState('');
 
     useEffect(() => {
-        let newUser = prompt('Enter your name');
-        setUser(newUser);
-
         socket.on('connect', () => {
             setIsConnected(true);
         });
 
-        socket.emit('new-user', newUser);
-
         socket.on('disconnect', () => {
             setIsConnected(false);
+        });
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                setUser(user.displayName);
+                socket.emit('new-user', user.displayName);
+                console.log("logged in as: ", user.displayName)
+            } else {
+                alert('Please login to continue');
+                push('/');
+            }
         });
         return () => {
             socket.off('connect');
@@ -40,7 +49,6 @@ const ChatApp = () => {
         socket.on('message', (message) => {
             setMessages(([...messages, message]));
         });
-
         return () => {
             socket.off('message');
         };
@@ -49,7 +57,6 @@ const ChatApp = () => {
     useEffect(() => {
         console.log(messages)
         console.log(user)
-
     }, [messages]);
 
     function getCurrentTime() {

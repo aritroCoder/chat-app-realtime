@@ -7,8 +7,8 @@ const Chatbar = ({image,name,status}) => {
   return (
       <div className="bg-green-500 dark:bg-color-surface-100 p-4 flex justify-between items-center">
           <div className='flex items-center'>
-              <div class="w-12 h-12 mx-5">
-                  <img class="rounded-full h-12 border-2 border-black dark:border-green-500" src={image} alt="" />
+              <div className="w-12 h-12 mx-5">
+                  <img className="rounded-full h-12 border-2 border-black dark:border-green-500" src={image} alt="" />
               </div>
               <div className='flex flex-col'>
                   <h1 className="text-2xl font-semibold text-white">{name}</h1>
