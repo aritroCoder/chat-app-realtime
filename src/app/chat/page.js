@@ -5,10 +5,6 @@ import { socket } from '../utils/socket';
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from '../utils/firebase';
 
-import { BsEmojiSmile, BsFillMicFill, BsFillCameraVideoFill } from 'react-icons/bs';
-import { ImAttachment } from 'react-icons/im';
-import { LuMoreVertical } from 'react-icons/lu';
-import { BiSolidPhoneCall } from 'react-icons/bi';
 
 import Chatbar from '../components/chatpage/Chatbar';
 import Chatbubble from '../components/chatpage/Chatbubble';
@@ -20,6 +16,8 @@ const ChatApp = () => {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [user, setUser] = useState('');
+    const [userName, setUserName] = useState('UserName')
+    const [userImage, setUserImage] = useState("https://images.ctfassets.net/hrltx12pl8hq/12wPNuS1sirO3hOes6l7Ds/9c69a51705b4a3421d65d6403ec815b1/non_cheesy_stock_photos_cover-edit.jpg")
 
     useEffect(() => {
         socket.on('connect', () => {
@@ -31,9 +29,11 @@ const ChatApp = () => {
         });
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                setUser(user.displayName);
-                socket.emit('new-user', user.displayName);
-                console.log("logged in as: ", user.displayName)
+                setUser(user.uid);
+                setUserName(user.displayName);
+                setUserImage(user.photoURL);
+                socket.emit('new-user', user.uid);
+                console.log("logged in as: ", user.uid)
             } else {
                 alert('Please login to continue');
                 push('/');
@@ -85,17 +85,12 @@ const ChatApp = () => {
             socket.emit('new-message', { message: newMessage, sender: user, time: getCurrentTime() });
             setNewMessage('');
         }
-        // else if (typeof newMessage !== 'string' && newMessage.type === 'video'){
-        //     setMessages([...messages, { message: newMessage, sender: user, time: getCurrentTime() }]);
-        //     socket.emit('new-message', { message: newMessage, sender: user, time: getCurrentTime() });
-        //     setNewMessage('');
-        // }
     };
 
     return (
         <div className='flex flex-col h-screen overflow-y-hidden'>
             {/* Top Bar */}
-            <Chatbar name={"Anurag Deo"} image={"https://images.ctfassets.net/hrltx12pl8hq/12wPNuS1sirO3hOes6l7Ds/9c69a51705b4a3421d65d6403ec815b1/non_cheesy_stock_photos_cover-edit.jpg"} status={isConnected}></Chatbar>
+            <Chatbar name={userName} image={userImage} status={isConnected}></Chatbar>
             {/* Chat area */}
             <div className="flex pb-[10rem] bg-color-primary-500 dark:bg-color-surface-200 flex-col h-screen">
                 <div className="flex-1 p-4 overflow-y-auto">
