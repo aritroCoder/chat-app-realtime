@@ -20,7 +20,7 @@ const LoginWithGoogle = () => {
                     if (docSnap.exists()) {
                         console.log("Existing user logged in.");
                         const user = result.user;
-                        push('/chat');
+                        push('/chatlist');
                     } else {
                         console.log("New user registered!");
                         push('/profile')

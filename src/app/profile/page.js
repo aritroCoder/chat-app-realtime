@@ -80,7 +80,7 @@ const Profile = () => {
                     "bio" : bio
                 }
                 localStorage.setItem("user",JSON.stringify(userinfo))
-                push('/chat')
+                push('/chatlist')
             })
             .catch((error) => {
                 console.error("Error adding document: ", error);
