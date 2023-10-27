@@ -3,8 +3,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { BsPencilSquare } from 'react-icons/bs';
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db, storage } from '../utils/firebase';
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { ref, getStorage, uploadBytes, getDownloadURL } from "firebase/storage"; // Storage module
+import { useRouter } from 'next/navigation';
 
 const Profile = () => {
     const fileInputRef = useRef(null);
@@ -16,6 +17,7 @@ const Profile = () => {
     const [imageFile, setImageFile] = useState('')
     const [userUid, setUserUid] = useState('')
     const [docRef, setDocRef] = useState('')
+    const { push } = useRouter();
 
     useEffect(() => {
         onAuthStateChanged(auth, async (user) => {
@@ -30,10 +32,15 @@ const Profile = () => {
                     if (userDocSnapshot.exists()) {
                         const userData = userDocSnapshot.data();
                         setName(userData.name || '');
-                        setEmail(userData.emailId || '');
-                        setMobile(userData.mobileNumber || '');
+                        setEmail(userData.email || '');
+                        setMobile(userData.mobile || '');
                         setProfileImage(userData.imageUrl || '');
                         setBio(userData.bio || '');
+                    }
+                    else{
+                        setName(user.displayName);
+                        setEmail(user.email);
+                        setMobile(user.phoneNumber);
                     }
                 } catch (error) {
                     console.error("Error fetching user data:", error);
@@ -54,17 +61,29 @@ const Profile = () => {
 
         // Get the download URL of the uploaded image
         const imageUrl = await getDownloadURL(storageRef);
-        updateDoc(docRef, {
-            name: name,
-            emailId: email,
-            mobileNumber: mobile,
-            imageUrl: imageUrl,
-            bio: bio,
-        }).then(() => {
-            console.log("Document successfully updated!");
+        await setDoc(docRef, {
+            name,
+            mobile,
+            email,
+            imageUrl,
+            bio,
         })
+            .then(() => {
+                console.log("Document added successfully!");
+                // Save the user info to local storage
+                let userinfo = {
+                    "uid" : userUid,
+                    "name" : name,
+                    "email" : email,
+                    "mobile": mobile,
+                    "image" : imageUrl,
+                    "bio" : bio
+                }
+                localStorage.setItem("user",JSON.stringify(userinfo))
+                push('/chat')
+            })
             .catch((error) => {
-                console.error("Error updating document: ", error);
+                console.error("Error adding document: ", error);
             });
     }
 

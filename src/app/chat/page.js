@@ -29,6 +29,7 @@ const ChatApp = () => {
         });
         onAuthStateChanged(auth, (user) => {
             if (user) {
+                
                 setUser(user.uid);
                 setUserName(user.displayName);
                 setUserImage(user.photoURL);
