@@ -2,7 +2,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { BsPencilSquare } from 'react-icons/bs';
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from '../utils/firebase';
+import { auth, db, storage } from '../utils/firebase';
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { ref, getStorage, uploadBytes, getDownloadURL } from "firebase/storage"; // Storage module
 
 const Profile = () => {
     const fileInputRef = useRef(null);
@@ -11,25 +13,65 @@ const Profile = () => {
     const [email, setEmail] = useState('');
     const [mobile, setMobile] = useState('');
     const [bio, setBio] = useState('');
+    const [imageFile, setImageFile] = useState('')
+    const [userUid, setUserUid] = useState('')
+    const [docRef, setDocRef] = useState('')
 
     useEffect(() => {
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                setName(user.displayName);
-                setEmail(user.email);
-                setMobile(user.phoneNumber);
-                setProfileImage(user.photoURL);
+                try {
+                    // Retrieve user data from Firestore based on the user's UID
+                    setUserUid(user.uid)
+                    const userDocRef = doc(db, 'users', user.uid);
+                    setDocRef(userDocRef)
+                    const userDocSnapshot = await getDoc(userDocRef);
+
+                    if (userDocSnapshot.exists()) {
+                        const userData = userDocSnapshot.data();
+                        setName(userData.name || '');
+                        setEmail(userData.emailId || '');
+                        setMobile(userData.mobileNumber || '');
+                        setProfileImage(userData.imageUrl || '');
+                        setBio(userData.bio || '');
+                    }
+                } catch (error) {
+                    console.error("Error fetching user data:", error);
+                }
             } else {
                 alert('Please login to continue');
                 push('/');
             }
         });
-    }, [])
-    
+    }, []);
+
+    const handleSubmit = async(e) => {
+        e.preventDefault();
+        console.log(name, email, mobile, bio, imageFile);
+        // Upload the user's image to Firebase Storage (assuming you have access to the image file)
+        const storageRef = ref(storage, `userImages/${userUid}`);
+        await uploadBytes(storageRef, imageFile);
+
+        // Get the download URL of the uploaded image
+        const imageUrl = await getDownloadURL(storageRef);
+        updateDoc(docRef, {
+            name: name,
+            emailId: email,
+            mobileNumber: mobile,
+            imageUrl: imageUrl,
+            bio: bio,
+        }).then(() => {
+            console.log("Document successfully updated!");
+        })
+            .catch((error) => {
+                console.error("Error updating document: ", error);
+            });
+    }
 
     const onImageUpload = (event) => {
         const file = event.target.files[0];
         if (file) {
+            setImageFile(file);
             setProfileImage(URL.createObjectURL(file));
         }
     };
@@ -101,7 +143,7 @@ const Profile = () => {
 
                 </div>
                 <div className="flex items-center">
-                    <button className='w-28 h-12 bg-color-primary-100 rounded-xl my-12 font-semibold'>Submit</button>
+                    <button onClick={handleSubmit} className='w-28 h-12 bg-color-primary-100 rounded-xl my-12 font-semibold'>Submit</button>
                 </div>
             </div>
         </div>
