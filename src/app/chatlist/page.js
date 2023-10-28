@@ -4,6 +4,7 @@ import Chatlistbar from '../components/chatpage/Chatlistbar'
 import { auth, db } from '../utils/firebase';
 import { useRouter } from 'next/navigation';
 import { collection, query, where, doc, getDoc, getDocs } from "firebase/firestore";
+import Link from 'next/link';
 
 const chatlist = () => {
     const { push } = useRouter();
@@ -64,12 +65,13 @@ const chatlist = () => {
             console.error("Error logging out:", error);
         });
     }
+
     return (
         <>
             <Chatlistbar name={name} image={image} email={email} handleLogout={handleLogout} />
             <div className="h-full min-h-screen w-full py-4 bg-color-primary-300 dark:bg-color-surface-100 flex flex-col items-center " >
-                {people && people.map((person) => (
-                    <div className='w-[95%] overflow-x-hidden rounded-xl py-3 my-4 bg-color-primary-600 dark:bg-color-surface-300'>
+                {people && people.map((person, index) => (
+                    <Link href={{pathname: '/chat', query: { id: person.id }}} key={index} className='w-[95%] overflow-x-hidden rounded-xl py-3 my-4 bg-color-primary-600 dark:bg-color-surface-300'>
                         <div className='flex items-center'>
                             <div className="w-12 h-12 mx-5">
                                 <img className="rounded-full h-12 border-2 border-black dark:border-green-500" src={person.imageUrl} alt="" />
@@ -80,7 +82,7 @@ const chatlist = () => {
 
                             </div>
                         </div>
-                    </div>
+                    </Link>
                 ))}
                 
             </div>

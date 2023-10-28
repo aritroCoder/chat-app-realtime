@@ -1,9 +1,10 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { socket } from '../utils/socket';
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from '../utils/firebase';
+import { auth, db } from "../utils/firebase";
+import { collection, query, where, doc, getDoc, getDocs } from "firebase/firestore";
 
 
 import Chatbar from '../components/chatpage/Chatbar';
@@ -11,14 +12,19 @@ import Chatbubble from '../components/chatpage/Chatbubble';
 import Chatinput from '../components/chatpage/Chatinput';
 
 const ChatApp = () => {
-    const { push } = useRouter();
-    const [isConnected, setIsConnected] = useState(socket.connected);
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const [isConnected, setIsConnected] = useState(false);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [user, setUser] = useState('');
     const [userName, setUserName] = useState('UserName')
     const [userImage, setUserImage] = useState("https://images.ctfassets.net/hrltx12pl8hq/12wPNuS1sirO3hOes6l7Ds/9c69a51705b4a3421d65d6403ec815b1/non_cheesy_stock_photos_cover-edit.jpg")
+    const [recieverId, setRecieverId] = useState('');
+    const [recieverName, setRecieverName] = useState('')
+    const [recieverImg, setRecieverImg] = useState('https://images.ctfassets.net/hrltx12pl8hq/12wPNuS1sirO3hOes6l7Ds/9c69a51705b4a3421d65d6403ec815b1/non_cheesy_stock_photos_cover-edit.jpg')
 
+    // connect user to socket, set user profile and reciever id
     useEffect(() => {
         socket.on('connect', () => {
             setIsConnected(true);
@@ -29,7 +35,6 @@ const ChatApp = () => {
         });
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                
                 setUser(user.uid);
                 setUserName(user.displayName);
                 setUserImage(user.photoURL);
@@ -37,29 +42,50 @@ const ChatApp = () => {
                 console.log("logged in as: ", user.uid)
             } else {
                 alert('Please login to continue');
-                push('/');
+                router.push('/');
             }
         });
+
+        // set reciever details
+        setRecieverId(searchParams.get('id'))
+
         return () => {
             socket.off('connect');
             socket.off('disconnect');
         };
     }, []);
 
+    // get messages from socket
     useEffect(() => {
         socket.on('message', (message) => {
-            setMessages(([...messages, message]));
+            // get only those messages whose recieverid matches our user id
+            console.log({message})
+            console.log({user})
+            console.log(message.recieverId == user)
+            let messageList = []
+            if (message.recieverId == user && message.sender == recieverId){ // if the message is sent by our message reciever to us, only then add it to the list
+                console.log("recieved a message!")
+                messageList.push(message)
+            }
+            setMessages((messages) => messages.concat(messageList));
         });
         return () => {
             socket.off('message');
         };
-    }, [socket, messages]);
+    }, [socket, messages, user]);
 
+    // log messages and user. debug only
     useEffect(() => {
         console.log(messages)
         console.log(user)
     }, [messages]);
 
+    // get reciever name
+    useEffect(() => {
+        if(user != "") fetchUsers();
+    }, [user]);
+
+    // get current time
     function getCurrentTime() {
         const now = new Date();
         const hours = now.getHours();
@@ -75,15 +101,36 @@ const ChatApp = () => {
         return `${formattedTime} ${amOrPm}`;
     }
 
+    // find the reciever name, image
+    const fetchUsers = async () => {
+      try {
+        const q = query(
+          collection(db, "users"),
+          where("__name__", "!=", user)
+        );
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          if(doc.id === recieverId){
+            setRecieverName(data.name);
+            setRecieverImg(data.imageUrl);
+          }
+        });
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+
+    // send message to socket
     const handleSendMessage = () => {
         if (typeof newMessage === 'string' && !newMessage.startsWith('blob:') && newMessage.trim() !== '') {
-            setMessages([...messages, { message: newMessage, sender: user, time: getCurrentTime() }]);
-            socket.emit('new-message', { message: newMessage, sender: user, time: getCurrentTime() });
+            setMessages([...messages, { message: newMessage, sender: user, recieverId, time: getCurrentTime() }]);
+            socket.emit('new-message', { message: newMessage, sender: user, recieverId, time: getCurrentTime() });
             setNewMessage('');
         }
         else if (typeof newMessage !== 'string'){
-            setMessages([...messages, { message: newMessage, sender: user, time: getCurrentTime() }]);
-            socket.emit('new-message', { message: newMessage, sender: user, time: getCurrentTime() });
+            setMessages([...messages, { message: newMessage, sender: user, recieverId, time: getCurrentTime() }]);
+            socket.emit('new-message', { message: newMessage, sender: user, recieverId, time: getCurrentTime() });
             setNewMessage('');
         }
     };
@@ -91,13 +138,13 @@ const ChatApp = () => {
     return (
         <div className='flex flex-col h-screen overflow-y-hidden'>
             {/* Top Bar */}
-            <Chatbar name={userName} image={userImage} status={isConnected}></Chatbar>
+            <Chatbar name={recieverName} image={recieverImg} status={isConnected}></Chatbar>
             {/* Chat area */}
             <div className="flex pb-[10rem] bg-color-primary-500 dark:bg-color-surface-200 flex-col h-screen">
                 <div className="flex-1 p-4 overflow-y-auto">
                     <div className="flex flex-1 flex-col space-y-4 h-[100%]">
                         {messages.map((message, index) => (
-                            <Chatbubble message={message} index={index} user={user}></Chatbubble>
+                            <Chatbubble key={index} message={message} index={index} user={user}></Chatbubble>
                         ))}
                     </div>
                 </div>

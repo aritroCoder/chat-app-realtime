@@ -1,3 +1,4 @@
+"use client"
 import React from 'react'
 import { BsFillCameraVideoFill } from 'react-icons/bs';
 import { LuMoreVertical } from 'react-icons/lu';
@@ -15,8 +16,7 @@ const Chatbar = ({image,name,status}) => {
                   {/* connected symbol */}
                   <div className="flex items-center">
                       <div
-                          className={`w-2 h-2 rounded-full mr-2 ${status ? 'bg-green-500' : 'bg-red-500'
-                              }`}
+                          className={`w-2 h-2 rounded-full mr-2 ${status ? 'bg-green-500' : 'bg-red-500'}`}
                       ></div>
                       <p className='text-white'>{status ? 'Online' : 'Offline'}</p>
                   </div>
