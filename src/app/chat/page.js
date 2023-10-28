@@ -27,6 +27,10 @@ const ChatApp = () => {
     // connect user to socket, set user profile and reciever id
     useEffect(() => {
         socket.on('connect', () => {
+            if(socket.recovered){
+                console.log('Recovered connection');
+                
+            }
             setIsConnected(true);
         });
 

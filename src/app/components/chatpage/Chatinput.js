@@ -16,8 +16,17 @@ const Chatinput = ({handleSendMessage,setNewMessage,newMessage}) => {
 
         if (selectedFile) {
             // Convert the selected file to a blob URL
-            const blobUrl = URL.createObjectURL(selectedFile);
-            setNewMessage({ type: fileType, url: blobUrl });
+            // const blobUrl = URL.createObjectURL(selectedFile);
+            // setNewMessage({ type: fileType, url: blobUrl });
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const fileArrayBuffer = e.target.result;
+                setNewMessage({ type: fileType, url: fileArrayBuffer });
+                handleSendMessage();
+            };
+
+            reader.readAsArrayBuffer(selectedFile);
             handleSendMessage();
         }
         handleSendMessage();

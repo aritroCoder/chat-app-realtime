@@ -1,6 +1,16 @@
 import React from 'react';
 
 const Chatbubble = ({ index, message, user }) => {
+
+  const arrayBufferToBase64 = (arrayBuffer) => {
+    const byteArray = new Uint8Array(arrayBuffer);
+    let binary = '';
+    for (let i = 0; i < byteArray.byteLength; i++) {
+      binary += String.fromCharCode(byteArray[i]);
+    }
+    return btoa(binary);
+  };
+
   return (
     <div
       key={index}
@@ -10,11 +20,11 @@ const Chatbubble = ({ index, message, user }) => {
         }`}
     >
       {typeof message.message !== 'string' && message.message.type === 'image' ? (
-        <img className='h-56 w-auto m-3 rounded-md' src={message.message.url} alt="" />
+        <img className='h-56 w-auto m-3 rounded-md' src={`data:image/jpeg;base64,${arrayBufferToBase64(message.message.url)}`} alt="" />
       ) : null}
 
       {typeof message.message !== 'string' && message.message.type === 'video' ? (
-        <video controls className='h-56 w-auto m-3 rounded-md' src={message.message.url} alt="" />
+        <video controls className='h-56 w-auto m-3 rounded-md' src={`data:video/mp4;base64,${arrayBufferToBase64(message.message.url)}`} alt="" />
       ) : null}
 
       {typeof message.message !== 'string' && message.message.type === 'file' ? (
