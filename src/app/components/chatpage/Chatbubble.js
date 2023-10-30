@@ -27,13 +27,17 @@ const Chatbubble = ({ index, message, user }) => {
         <video controls className='h-56 w-auto m-3 rounded-md' src={`data:video/mp4;base64,${arrayBufferToBase64(message.message.url)}`} alt="" />
       ) : null}
 
+      {typeof message.message !== 'string' && message.message.type === 'audio' ? (
+        <audio controls className='h-56 m-3 rounded-md' src={`data:audio/mp3;base64,${arrayBufferToBase64(message.message.url)}`} alt="" />
+      ) : null}
+
       {typeof message.message !== 'string' && message.message.type === 'file' ? (
         <iframe
           loading='lazy'
           allowFullScreen={true}
           allow='fullscreen'
           className='h-96 w-auto m-3 rounded-md'
-          src={message.message.url}
+          src={`data:application/pdf;base64,${arrayBufferToBase64(message.message.url)}`}
           alt=""
         />
       ) : null}

@@ -70,6 +70,11 @@ const Chatinput = ({handleSendMessage,setNewMessage,newMessage}) => {
                               fileInputRef.current.click();
                           }
                       }}
+                      onAudioClick={() => {
+                          if (fileInputRef.current) {
+                              fileInputRef.current.click();
+                          }
+                      }}
                       onFileClick={() => {
                           if (fileInputRef.current) {
                               fileInputRef.current.click();
@@ -80,7 +85,7 @@ const Chatinput = ({handleSendMessage,setNewMessage,newMessage}) => {
               <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*,video/*,.pdf,.doc,.txt" // Accept various file types
+                  accept="image/*,video/*,.pdf,audio/*" // Accept various file types
                   style={{ display: 'none' }}
                   onChange={(e) => {
                       // Determine the file type and pass it to the handler
@@ -88,6 +93,8 @@ const Chatinput = ({handleSendMessage,setNewMessage,newMessage}) => {
                           handleFileUpload(e, 'image');
                       } else if (e.target.files[0].type.startsWith('video/')) {
                           handleFileUpload(e, 'video');
+                      } else if (e.target.files[0].type.startsWith('audio/')) {
+                          handleFileUpload(e, 'audio');
                       } else {
                           handleFileUpload(e, 'file');
                       }
