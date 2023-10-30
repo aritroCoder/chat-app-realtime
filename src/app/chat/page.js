@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { socket } from '../utils/socket';
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../utils/firebase";
-import { collection, query, where, doc, getDoc, getDocs } from "firebase/firestore";
+import { collection, query, where, doc, setDoc, addDoc, getDoc, getDocs } from "firebase/firestore";
 
 
 import Chatbar from '../components/chatpage/Chatbar';
@@ -53,6 +53,7 @@ const ChatApp = () => {
         // set reciever details
         setRecieverId(searchParams.get('id'))
 
+
         return () => {
             socket.off('connect');
             socket.off('disconnect');
@@ -82,12 +83,27 @@ const ChatApp = () => {
     useEffect(() => {
         console.log(messages)
         console.log(user)
+        if(user != '' && recieverId != '')
+          setDoc(doc(db, "messages", user + recieverId), { data: JSON.stringify(messages) })
     }, [messages]);
 
     // get reciever name
     useEffect(() => {
         if(user != "") fetchUsers();
     }, [user]);
+
+    useEffect(() => {
+      if(user != '' && recieverId != ''){
+        // get messages from firebase
+        const docRef = doc(db, "messages", user + recieverId)
+        getDoc(docRef).then((docSnap)=>{
+          if(docSnap.exists()){
+            console.log(docSnap.data().data)
+            setMessages(JSON.parse(docSnap.data().data))
+          }
+        })
+      }
+    }, [user, recieverId])
 
     // get current time
     function getCurrentTime() {
