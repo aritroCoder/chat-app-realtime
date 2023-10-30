@@ -1,10 +1,18 @@
+"use client"
 import React, { useState, useRef, useEffect } from 'react'
 import { BsEmojiSmile, BsFillMicFill } from 'react-icons/bs';
 import { ImAttachment } from 'react-icons/im';
 import AttachmentMenu from './AttachmentMenu';
+import EmojiPicker from 'emoji-picker-react';
+
 
 const Chatinput = ({handleSendMessage,setNewMessage,newMessage}) => {
     const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const toggleEmojiPicker = () => {
+        setShowEmojiPicker(!showEmojiPicker);
+    };
+
     const fileInputRef = useRef(null);
 
     const toggleAttachmentMenu = () => {
@@ -48,10 +56,23 @@ const Chatinput = ({handleSendMessage,setNewMessage,newMessage}) => {
           <div className="flex">
               <button
                   className="ml-2 mx-1 px-1 py-2 bg-transparent text-gray-700 dark:text-gray-200 text-2xl rounded-md"
-                  onClick={handleSendMessage}
+                  onClick={toggleEmojiPicker}
               >
                   <BsEmojiSmile />
               </button>
+              {showEmojiPicker && (
+                  <EmojiPicker
+                    // className='absolute bottom-0 right-0'
+                    style={{position:'absolute',bottom:'5rem'}}
+                      onEmojiClick={(emoji, event) => {
+                          // Handle the emoji click event here
+                          const emojiText = emoji.emoji;
+                          setNewMessage((prevMessage) => prevMessage + emojiText);
+                      }}
+                  />
+                // <span>HIiiiiiiiiiiiiiii</span>
+              )}
+
               <button
                   className="ml-2 mx-3 px-1 py-2 bg-transparent text-gray-700 dark:text-gray-200 text-2xl rounded-md"
                   onClick={toggleAttachmentMenu}
@@ -104,8 +125,16 @@ const Chatinput = ({handleSendMessage,setNewMessage,newMessage}) => {
                   type="text"
                   className="flex-1 p-2 rounded-md border-none focus:outline-none text-black dark:text-white bg-white dark:bg-color-surface-200"
                   placeholder="Type your message..."
+                  autoFocus
                   value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
+                  onClick={(e) => {
+                      setShowEmojiPicker(false)
+                      setShowAttachmentMenu(false)
+
+                  }}
+                  onChange={(e) => {
+                    setNewMessage(e.target.value)
+                }}
                   onKeyUp={(e) => {
                       if (e.key === 'Enter') {
                           handleSendMessage();

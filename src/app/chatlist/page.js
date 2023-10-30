@@ -48,7 +48,7 @@ const chatlist = () => {
                     });
                 fetchUsers(user);
             } else {
-                alert('Please login to continue');
+                // alert('Please login to continue');
                 push('/');
             }
         });
