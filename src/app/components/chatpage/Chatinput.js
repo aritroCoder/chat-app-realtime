@@ -4,13 +4,46 @@ import { BsEmojiSmile, BsFillMicFill } from 'react-icons/bs';
 import { ImAttachment } from 'react-icons/im';
 import AttachmentMenu from './AttachmentMenu';
 import EmojiPicker from 'emoji-picker-react';
+import { useAudioRecorder } from 'react-audio-voice-recorder';
 
 
 const Chatinput = ({handleSendMessage,setNewMessage,newMessage}) => {
     const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [isRecordingStarted, setIsRecordingStarted] = useState(false);
+    const {
+        startRecording,
+        stopRecording,
+        togglePauseResume,
+        recordingBlob,
+        isRecording
+    } = useAudioRecorder();
+
+    useEffect(() => {
+        if (!recordingBlob) return;
+
+        const reader = new FileReader();
+
+        reader.onload = (event) => {
+            const arrayBuffer = event.target.result;
+
+            // Now, you can set the arrayBuffer as your new message
+            setIsRecordingStarted(false);
+            setNewMessage({ type: 'audio', url: arrayBuffer });
+            handleSendMessage();
+        };
+
+        // Read the recordingBlob as an ArrayBuffer
+        reader.readAsArrayBuffer(recordingBlob);
+    }, [recordingBlob]);
+
+
     const toggleEmojiPicker = () => {
         setShowEmojiPicker(!showEmojiPicker);
+    };
+
+    const handleStartRecording = () => {
+        setIsRecordingStarted(true);
     };
 
     const fileInputRef = useRef(null);
@@ -70,7 +103,6 @@ const Chatinput = ({handleSendMessage,setNewMessage,newMessage}) => {
                           setNewMessage((prevMessage) => prevMessage + emojiText);
                       }}
                   />
-                // <span>HIiiiiiiiiiiiiiii</span>
               )}
 
               <button
@@ -142,7 +174,19 @@ const Chatinput = ({handleSendMessage,setNewMessage,newMessage}) => {
                   }}
               />
               <button
-                  className="ml-2 px-4 py-2 bg-transparent text-gray-700 dark:text-gray-200 text-2xl rounded-md"
+                  className={`ml-2 px-4 py-2 bg-transparent text-2xl rounded-md ${isRecordingStarted ? 'text-red-500' : 'text-gray-700 dark:text-gray-200'}`}
+                  onClick={() => {
+                      if (isRecording) {
+                          // If recording is in progress, stop it.
+                          // This acts as a toggle for starting/stopping recording.
+                          stopRecording()
+                          setIsRecordingStarted(false);
+                        } else {
+                            // If not recording, start recording.
+                          startRecording()
+                          handleStartRecording();
+                      }
+                  }}
               >
                   <BsFillMicFill />
               </button>
