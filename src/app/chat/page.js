@@ -107,6 +107,24 @@ const ChatApp = () => {
       }
     }, [user, recieverId])
 
+    // Function to download a text file with all the text messages
+    const downloadTxtFile = () => {
+        // Iterate through the messages array and find out the text strings and add them to a new array
+        let textMessages = [];
+        const element = document.createElement("a");
+        messages.forEach((message) => {
+            if (typeof message.message === 'string') {
+                textMessages.push({ message: message.message, sender: message.sender==user?userName:recieverName,reciever: message.reciever==user?userName:recieverName, time: message.time });
+            }
+        }
+        );
+        const file = new Blob([JSON.stringify(textMessages)], { type: 'text/plain' });
+        element.href = URL.createObjectURL(file);
+        element.download = `messages_${userName}_${recieverName}.txt`;
+        document.body.appendChild(element); // Required for this to work in FireFox
+        element.click();
+    }
+
     // get current time
     function getCurrentTime() {
         const now = new Date();
@@ -197,7 +215,7 @@ const ChatApp = () => {
     return (
         <div className='flex flex-col h-screen overflow-y-hidden'>
             {/* Top Bar */}
-            <Chatbar name={recieverName} image={recieverImg} status={isConnected}></Chatbar>
+            <Chatbar name={recieverName} image={recieverImg} status={isConnected} downloadTxt={downloadTxtFile}></Chatbar>
             {/* Chat area */}
             <div className="flex pb-[10rem] bg-color-primary-500 dark:bg-color-surface-200 flex-col h-screen">
                 <div className="flex-1 p-4 overflow-y-auto">

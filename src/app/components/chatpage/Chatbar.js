@@ -3,8 +3,9 @@ import React from 'react'
 import { BsFillCameraVideoFill } from 'react-icons/bs';
 import { LuMoreVertical } from 'react-icons/lu';
 import { BiSolidPhoneCall } from 'react-icons/bi';
+import { AiFillFileText } from 'react-icons/ai';
 
-const Chatbar = ({image,name,status}) => {
+const Chatbar = ({image,name,status,downloadTxt}) => {
   return (
       <div className="bg-green-500 dark:bg-color-surface-100 p-4 flex justify-between items-center">
           <div className='flex items-center'>
@@ -35,8 +36,9 @@ const Chatbar = ({image,name,status}) => {
               </button>
               <button
                   className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md"
+                  onClick={()=>{downloadTxt()}}
               >
-                  <LuMoreVertical />
+                  <AiFillFileText />
               </button>
           </div>
       </div>
