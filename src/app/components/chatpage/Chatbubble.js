@@ -20,15 +20,16 @@ const Chatbubble = ({ index, message, user }) => {
         }`}
     >
       {typeof message.message !== 'string' && message.message.type === 'image' ? (
-        <img className='h-56 w-auto m-3 rounded-md' src={`data:image/jpeg;base64,${arrayBufferToBase64(message.message.url)}`} alt="" />
+        <img className='h-56 w-auto m-3 rounded-md' src={`${message.message.url}`} alt="" />
+        // <img className='h-56 w-auto m-3 rounded-md' src={`data:image/jpeg;base64,${message.message.url}`} alt="" />
       ) : null}
 
       {typeof message.message !== 'string' && message.message.type === 'video' ? (
-        <video controls className='h-56 w-auto m-3 rounded-md' src={`data:video/mp4;base64,${arrayBufferToBase64(message.message.url)}`} alt="" />
+        <video controls className='h-56 w-auto m-3 rounded-md' src={`${message.message.url}`} alt="" />
       ) : null}
 
       {typeof message.message !== 'string' && message.message.type === 'audio' ? (
-        <audio controls className='h-56 m-3 rounded-md' src={`data:audio/mp3;base64,${arrayBufferToBase64(message.message.url)}`} alt="" />
+        <audio controls className='h-56 m-3 rounded-md' src={`${message.message.url}`} alt="" />
       ) : null}
 
       {typeof message.message !== 'string' && message.message.type === 'file' ? (
@@ -37,7 +38,7 @@ const Chatbubble = ({ index, message, user }) => {
           allowFullScreen={true}
           allow='fullscreen'
           className='h-96 w-auto m-3 rounded-md'
-          src={`data:application/pdf;base64,${arrayBufferToBase64(message.message.url)}`}
+          src={`${message.message.url}`}
           alt=""
         />
       ) : null}

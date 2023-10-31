@@ -5,6 +5,7 @@ import { socket } from '../utils/socket';
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../utils/firebase";
 import { collection, query, where, doc, setDoc, addDoc, getDoc, getDocs } from "firebase/firestore";
+import { ref, getStorage, uploadBytes, getDownloadURL } from "firebase/storage"; // Storage module
 
 
 import Chatbar from '../components/chatpage/Chatbar';
@@ -13,6 +14,7 @@ import Chatinput from '../components/chatpage/Chatinput';
 
 const ChatApp = () => {
     const router = useRouter();
+    const storage = getStorage();
     const searchParams = useSearchParams();
     const [isConnected, setIsConnected] = useState(false);
     const [messages, setMessages] = useState([]);
@@ -149,8 +151,45 @@ const ChatApp = () => {
             setNewMessage('');
         }
         else if (typeof newMessage !== 'string'){
-            setMessages([...messages, { message: newMessage, sender: user, recieverId, time: getCurrentTime() }]);
-            socket.emit('new-message', { message: newMessage, sender: user, recieverId, time: getCurrentTime() });
+            console.log(newMessage);
+            let date = new Date();
+            let metadata
+            if(newMessage.type === "image"){
+                metadata = {
+                    contentType: 'image/jpg',
+                };
+            }
+            else if(newMessage.type === "video"){
+                metadata = {
+                    contentType: 'video/mp4',
+                };
+            }
+            else if(newMessage.type === "audio"){
+                metadata = {
+                    contentType: 'audio/mp3',
+                };
+            }
+            else{
+                metadata = {
+                    contentType: 'application/pdf',
+                };
+            }
+            const storageRef = ref(storage, `chats/${user + recieverId + date}`);
+            uploadBytes(storageRef, newMessage.url, metadata).then((snapshot) => {
+                console.log('Uploaded a blob or file!');
+                getDownloadURL(storageRef)
+                    .then((downloadURL) => {
+                        console.log('File available at', downloadURL);
+                        setMessages([...messages, { message: {type:newMessage.type, url:downloadURL}, sender: user, recieverId, time: getCurrentTime() }]);
+                        socket.emit('new-message', { message: { type: newMessage.type, url: downloadURL }, sender: user, recieverId, time: getCurrentTime() });
+                    })
+                    .catch((error) => {
+                        // Handle any errors while getting the download URL
+                        console.error('Error getting download URL:', error);
+                    });
+            });
+            console.log(newMessage);
+            
             setNewMessage('');
         }
     };

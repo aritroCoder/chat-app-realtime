@@ -46,6 +46,15 @@ const Chatinput = ({handleSendMessage,setNewMessage,newMessage}) => {
         setIsRecordingStarted(true);
     };
 
+    // const arrayBufferToBase64 = (arrayBuffer) => {
+    //     const byteArray = new Uint8Array(arrayBuffer);
+    //     let binary = '';
+    //     for (let i = 0; i < byteArray.byteLength; i++) {
+    //         binary += String.fromCharCode(byteArray[i]);
+    //     }
+    //     return btoa(binary);
+    // };
+
     const fileInputRef = useRef(null);
 
     const toggleAttachmentMenu = () => {
@@ -63,7 +72,7 @@ const Chatinput = ({handleSendMessage,setNewMessage,newMessage}) => {
 
             reader.onload = (e) => {
                 const fileArrayBuffer = e.target.result;
-                setNewMessage({ type: fileType, url: fileArrayBuffer });
+                setNewMessage({ type: fileType, url: selectedFile });
                 handleSendMessage();
             };
 
