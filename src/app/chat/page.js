@@ -94,6 +94,7 @@ const ChatApp = () => {
         if(user != "") fetchUsers();
     }, [user]);
 
+    // get previous messages from firestore and set them in messages array
     useEffect(() => {
       if(user != '' && recieverId != ''){
         // get messages from firebase
