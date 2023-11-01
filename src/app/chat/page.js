@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { socket } from '../utils/socket';
 import { onAuthStateChanged } from "firebase/auth";
@@ -15,6 +15,7 @@ import Chatinput from '../components/chatpage/Chatinput';
 const ChatApp = () => {
     const router = useRouter();
     const storage = getStorage();
+    const chatContainerRef = useRef(null);
     const searchParams = useSearchParams();
     const [isConnected, setIsConnected] = useState(false);
     const [messages, setMessages] = useState([]);
@@ -142,6 +143,12 @@ const ChatApp = () => {
         return `${formattedTime} ${amOrPm}`;
     }
 
+    useEffect(() => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+    }, [messages]);
+
     // find the reciever name, image
     const fetchUsers = async () => {
       try {
@@ -218,8 +225,8 @@ const ChatApp = () => {
             {/* Top Bar */}
             <Chatbar name={recieverName} image={recieverImg} status={isConnected} downloadTxt={downloadTxtFile}></Chatbar>
             {/* Chat area */}
-            <div className="flex pb-[10rem] bg-color-primary-500 dark:bg-color-surface-200 flex-col h-screen">
-                <div className="flex-1 p-4 overflow-y-auto">
+            <div  className="flex pb-[10rem] bg-color-primary-500 dark:bg-color-surface-200 flex-col h-screen">
+                <div ref={chatContainerRef} className="flex-1 p-4 overflow-y-auto" id="scroll">
                     <div className="flex flex-1 flex-col space-y-4 h-[100%]">
                         {messages.map((message, index) => (
                             <Chatbubble key={index} message={message} index={index} user={user}></Chatbubble>
