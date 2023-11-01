@@ -25,6 +25,7 @@ const ChatApp = () => {
     const [userImage, setUserImage] = useState("https://images.ctfassets.net/hrltx12pl8hq/12wPNuS1sirO3hOes6l7Ds/9c69a51705b4a3421d65d6403ec815b1/non_cheesy_stock_photos_cover-edit.jpg")
     const [recieverId, setRecieverId] = useState('');
     const [recieverName, setRecieverName] = useState('')
+    const [recieverLastSeen, setRecieverLastSeen] = useState('')
     const [recieverImg, setRecieverImg] = useState('https://images.ctfassets.net/hrltx12pl8hq/12wPNuS1sirO3hOes6l7Ds/9c69a51705b4a3421d65d6403ec815b1/non_cheesy_stock_photos_cover-edit.jpg')
 
     // connect user to socket, set user profile and reciever id
@@ -108,7 +109,7 @@ const ChatApp = () => {
         })
       }
     }, [user, recieverId])
-
+    
     // Function to download a text file with all the text messages
     const downloadTxtFile = () => {
         // Iterate through the messages array and find out the text strings and add them to a new array
@@ -146,6 +147,46 @@ const ChatApp = () => {
     useEffect(() => {
         if (chatContainerRef.current) {
             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+        if(recieverId){
+        const userDocRef = doc(db, 'users', recieverId)
+        getDoc(userDocRef)
+            .then((docSnap) => {
+                if (docSnap.exists()) {
+                    let milliseconds = docSnap.data().lastSeen.seconds * 1000 + docSnap.data().lastSeen.nanoseconds / 1e6;
+                    let time = new Date(milliseconds);
+                    // console.log(time);
+                    const hours = time.getHours();
+                    const minutes = time.getMinutes();
+                    const amOrPm = hours >= 12 ? 'PM' : 'AM';
+
+                    // Convert to 12-hour format
+                    const formattedHours = hours % 12 || 12;
+
+                    // Ensure the hours and minutes are displayed with leading zeros if needed
+                    const formattedTime = `${String(formattedHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+
+                    //   return `${formattedTime} ${amOrPm}`;
+                    console.log(`${formattedTime} ${amOrPm}`);
+                    setRecieverLastSeen(`${formattedTime} ${amOrPm}`);
+                }
+            })
+            .catch((error) => {
+                console.error('Error checking user document:', error)
+            })
+        }
+        if(user){
+        const userDocRef = doc(db, 'users', user)
+        getDoc(userDocRef)
+            .then((docSnap) => {
+                if (docSnap.exists()) {
+                    const userData = docSnap.data()
+                    setDoc(doc(db, "users", user), { name: docSnap.data().name, imageUrl: docSnap.data().imageUrl, email: docSnap.data().email, mobile: docSnap.data().mobile, bio: docSnap.data().bio, lastSeen: new Date() })
+                }
+            })
+            .catch((error) => {
+                console.error('Error checking user document:', error)
+            })
         }
     }, [messages]);
 
@@ -223,7 +264,7 @@ const ChatApp = () => {
     return (
         <div className='flex flex-col h-screen overflow-y-hidden'>
             {/* Top Bar */}
-            <Chatbar name={recieverName} image={recieverImg} status={isConnected} downloadTxt={downloadTxtFile}></Chatbar>
+            <Chatbar name={recieverName} image={recieverImg} status={isConnected} lastSeen={recieverLastSeen} downloadTxt={downloadTxtFile}></Chatbar>
             {/* Chat area */}
             <div  className="flex pb-[10rem] bg-color-primary-500 dark:bg-color-surface-200 flex-col h-screen">
                 <div ref={chatContainerRef} className="flex-1 p-4 overflow-y-auto" id="scroll">
