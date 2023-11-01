@@ -1,9 +1,10 @@
 'use client'
 import React, { useEffect, useState, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { socket } from '../utils/socket'
+import { socket } from '../../utils/socket'
 import { onAuthStateChanged } from 'firebase/auth'
-import { auth, db } from '../utils/firebase'
+import { auth, db } from '../../utils/firebase'
+import fetchUser from '../../utils/fetchuser'
 import {
     collection,
     query,
@@ -16,9 +17,9 @@ import {
 } from 'firebase/firestore'
 import { ref, getStorage, uploadBytes, getDownloadURL } from 'firebase/storage' // Storage module
 
-import Chatbar from '../components/chatpage/Chatbar'
-import Chatbubble from '../components/chatpage/Chatbubble'
-import Chatinput from '../components/chatpage/Chatinput'
+import Chatbar from '../../components/chatpage/Chatbar'
+import Chatbubble from '../../components/chatpage/Chatbubble'
+import Chatinput from '../../components/chatpage/Chatinput'
 
 const ChatApp = () => {
     const router = useRouter()
@@ -33,14 +34,15 @@ const ChatApp = () => {
     const [userImage, setUserImage] = useState(
         'https://images.ctfassets.net/hrltx12pl8hq/12wPNuS1sirO3hOes6l7Ds/9c69a51705b4a3421d65d6403ec815b1/non_cheesy_stock_photos_cover-edit.jpg',
     )
-    const [recieverId, setRecieverId] = useState('')
-    const [recieverName, setRecieverName] = useState('')
-    const [recieverImg, setRecieverImg] = useState(
+    const [groupId, setGroupId] = useState('')
+    const [groupName, setGroupName] = useState('')
+    const [groupImg, setGroupImg] = useState(
         'https://images.ctfassets.net/hrltx12pl8hq/12wPNuS1sirO3hOes6l7Ds/9c69a51705b4a3421d65d6403ec815b1/non_cheesy_stock_photos_cover-edit.jpg',
     )
-    const [recieverLastSeen, setRecieverLastSeen] = useState('')
+    const [groupMembersId, setGroupMembersId] = useState([])
+    const [groupMembers, setGroupMembers] = useState([])
 
-    // connect user to socket, set user profile and reciever id
+    // connect user to socket, set user profile and group id
     useEffect(() => {
         socket.on('connect', () => {
             if (socket.recovered) {
@@ -65,8 +67,8 @@ const ChatApp = () => {
             }
         })
 
-        // set reciever details
-        setRecieverId(searchParams.get('id'))
+        // set group details
+        setGroupId(searchParams.get('id'))
 
         return () => {
             socket.off('connect')
@@ -74,15 +76,23 @@ const ChatApp = () => {
         }
     }, [])
 
+    // log save messages into firebase.
+    useEffect(() => {
+        console.log(messages)
+        console.log(user)
+        if (groupId != '')
+            setDoc(doc(db, 'messages', groupId), {
+                data: JSON.stringify(messages),
+            })
+    }, [messages])
+
     // get messages from socket
     useEffect(() => {
         socket.on('message', (message) => {
-            // get only those messages whose recieverid matches our user id
+            // get only those messages whose groupId matches our current group
             console.log({ message })
-            console.log({ user })
-            console.log(message.recieverId == user)
             let messageList = []
-            if (message.recieverId == user && message.sender == recieverId) {
+            if (message.groupId == groupId) {
                 // if the message is sent by our message reciever to us, only then add it to the list
                 console.log('recieved a message!')
                 messageList.push(message)
@@ -94,26 +104,18 @@ const ChatApp = () => {
         }
     }, [socket, messages, user])
 
-    // log save messages into firebase.
+    // get group data
     useEffect(() => {
-        console.log(messages)
-        console.log(user)
-        if (user != '' && recieverId != '')
-            setDoc(doc(db, 'messages', user + recieverId), {
-                data: JSON.stringify(messages),
-            })
-    }, [messages])
-
-    // get reciever name
-    useEffect(() => {
-        if (user != '') fetchUsers()
-    }, [user])
+        if (groupId != '') {
+            getGroupData(groupId)
+        }
+    }, [groupId])
 
     // get previous messages from firestore and set them in messages array
     useEffect(() => {
-        if (user != '' && recieverId != '') {
+        if (groupId != '') {
             // get messages from firebase
-            const docRef = doc(db, 'messages', user + recieverId)
+            const docRef = doc(db, 'messages', groupId)
             getDoc(docRef).then((docSnap) => {
                 if (docSnap.exists()) {
                     console.log(docSnap.data().data)
@@ -121,9 +123,10 @@ const ChatApp = () => {
                 }
             })
         }
-    }, [user, recieverId])
+    }, [groupId])
 
     // Function to download a text file with all the text messages
+    // TODO: update it for group
     const downloadTxtFile = () => {
         // Iterate through the messages array and find out the text strings and add them to a new array
         let textMessages = []
@@ -172,78 +175,53 @@ const ChatApp = () => {
             chatContainerRef.current.scrollTop =
                 chatContainerRef.current.scrollHeight
         }
-        if (recieverId) {
-            const userDocRef = doc(db, 'users', recieverId)
-            getDoc(userDocRef)
-                .then((docSnap) => {
-                    if (docSnap.exists()) {
-                        let milliseconds =
-                            docSnap.data().lastSeen.seconds * 1000 +
-                            docSnap.data().lastSeen.nanoseconds / 1e6
-                        let time = new Date(milliseconds)
-                        // console.log(time);
-                        const hours = time.getHours()
-                        const minutes = time.getMinutes()
-                        const amOrPm = hours >= 12 ? 'PM' : 'AM'
-
-                        // Convert to 12-hour format
-                        const formattedHours = hours % 12 || 12
-
-                        // Ensure the hours and minutes are displayed with leading zeros if needed
-                        const formattedTime = `${String(
-                            formattedHours,
-                        ).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
-
-                        //   return `${formattedTime} ${amOrPm}`;
-                        console.log(`${formattedTime} ${amOrPm}`)
-                        setRecieverLastSeen(`${formattedTime} ${amOrPm}`)
-                    }
-                })
-                .catch((error) => {
-                    console.error('Error checking user document:', error)
-                })
-        }
-        if (user) {
-            const userDocRef = doc(db, 'users', user)
-            getDoc(userDocRef)
-                .then((docSnap) => {
-                    if (docSnap.exists()) {
-                        const userData = docSnap.data()
-                        setDoc(doc(db, 'users', user), {
-                            name: docSnap.data().name,
-                            imageUrl: docSnap.data().imageUrl,
-                            email: docSnap.data().email,
-                            mobile: docSnap.data().mobile,
-                            bio: docSnap.data().bio,
-                            lastSeen: new Date(),
-                        })
-                    }
-                })
-                .catch((error) => {
-                    console.error('Error checking user document:', error)
-                })
-        }
     }, [messages])
 
-    // find the reciever name, image
-    const fetchUsers = async () => {
+    // find the user detials from userid
+    // const fetchUser = async (id) => {
+    //     try {
+    //         const q = query(
+    //             collection(db, 'users'),
+    //             where('__name__', '!=', user),
+    //         )
+    //         const querySnapshot = await getDocs(q)
+    //         querySnapshot.forEach((doc) => {
+    //             const data = doc.data()
+    //             if (doc.id === id) {
+    //                 return data.name
+    //             }
+    //         })
+    //     } catch (error) {
+    //         console.error('Error fetching users:', error)
+    //     }
+    // }
+
+    // get group data from id
+    const getGroupData = async (groupId) => {
         try {
-            const q = query(
-                collection(db, 'users'),
-                where('__name__', '!=', user),
-            )
-            const querySnapshot = await getDocs(q)
+            const querySnapshot = await getDocs(collection(db, 'groups'))
             querySnapshot.forEach((doc) => {
-                const data = doc.data()
-                if (doc.id === recieverId) {
-                    setRecieverName(data.name)
-                    setRecieverImg(data.imageUrl)
+                if (doc.id == groupId) {
+                    console.log(doc.data())
+                    setGroupName(doc.data().name)
+                    setGroupMembersId(doc.data().members)
                 }
             })
         } catch (error) {
-            console.error('Error fetching users:', error)
+            console.log('Error getting document:', error)
         }
     }
+
+    // get group memebers usernames from ids
+    useEffect(() => {
+        if (groupMembersId.length > 0) {
+            let members = []
+            groupMembersId.forEach((memberId) => {
+                members.push(fetchUser(memberId))
+            })
+            setGroupMembers(members)
+        }
+    }, [groupMembersId])
 
     // send message to socket
     const handleSendMessage = () => {
@@ -257,14 +235,14 @@ const ChatApp = () => {
                 {
                     message: newMessage,
                     sender: user,
-                    recieverId,
+                    groupId,
                     time: getCurrentTime(),
                 },
             ])
             socket.emit('new-message', {
                 message: newMessage,
                 sender: user,
-                recieverId,
+                groupId,
                 time: getCurrentTime(),
             })
             setNewMessage('')
@@ -289,7 +267,7 @@ const ChatApp = () => {
                     contentType: 'application/pdf',
                 }
             }
-            const storageRef = ref(storage, `chats/${user + recieverId + date}`)
+            const storageRef = ref(storage, `chats/${groupId + date}`)
             uploadBytes(storageRef, newMessage.url, metadata).then(
                 (snapshot) => {
                     console.log('Uploaded a blob or file!')
@@ -304,7 +282,7 @@ const ChatApp = () => {
                                         url: downloadURL,
                                     },
                                     sender: user,
-                                    recieverId,
+                                    groupId,
                                     time: getCurrentTime(),
                                 },
                             ])
@@ -314,7 +292,7 @@ const ChatApp = () => {
                                     url: downloadURL,
                                 },
                                 sender: user,
-                                recieverId,
+                                groupId,
                                 time: getCurrentTime(),
                             })
                         })
@@ -330,16 +308,36 @@ const ChatApp = () => {
         }
     }
 
+    const addMember = async () => {
+        var memberId = prompt('Enter the member id:')
+        if (memberId == null) return
+        setGroupMembersId((prev) => [...prev, memberId])
+    }
+
+    // update the member of the group in firebase
+    useEffect(() => {
+        const addMemberToGroup = async () => {
+            if (groupId == '') return
+            let docRef = doc(db, 'groups', groupId)
+            await setDoc(docRef, {
+                imageUrl: groupImg,
+                members: groupMembersId,
+                name: groupName,
+            })
+        }
+        addMemberToGroup()
+    }, [groupMembersId])
+
     return (
         <div className="flex flex-col h-screen overflow-y-hidden">
             {/* Top Bar */}
             <Chatbar
-                name={recieverName}
-                image={recieverImg}
+                name={groupName}
+                image={groupImg}
                 status={isConnected}
                 downloadTxt={downloadTxtFile}
-                lastSeen={recieverLastSeen}
             ></Chatbar>
+            <button onClick={() => addMember()}>add members</button>
             {/* Chat area */}
             <div className="flex pb-[10rem] bg-color-primary-500 dark:bg-color-surface-200 flex-col h-screen">
                 <div
