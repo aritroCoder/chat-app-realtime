@@ -10,3 +10,11 @@
 .audio-recorder{
     margin-left: 15px;
 }
+
+.makeGrpModal{
+    background: #2e382f !important;
+    max-width: 500px;
+    width: 100%;
+    min-height: 500px;
+    color: white;
+}

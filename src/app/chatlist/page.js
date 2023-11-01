@@ -1,8 +1,10 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import Chatlistbar from '../components/chatpage/Chatlistbar'
-import { auth, db } from '../utils/firebase'
+import { auth, db, storage } from '../utils/firebase'
 import { useRouter } from 'next/navigation'
+import 'react-responsive-modal/styles.css'
+import { Modal } from 'react-responsive-modal'
 import {
     collection,
     query,
@@ -13,6 +15,7 @@ import {
     setDoc,
     addDoc,
 } from 'firebase/firestore'
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Storage module
 import Link from 'next/link'
 
 const chatlist = () => {
@@ -23,12 +26,18 @@ const chatlist = () => {
     const [image, setImage] = useState('')
     const [people, setPeople] = useState('')
     const [groups, setGroups] = useState([])
+    const [open, setOpen] = useState(false)
+    const [groupName, setGroupName] = useState('')
+    const [groupPic, setGroupPic] = useState('')
+
+    const onOpenModal = () => setOpen(true)
+    const onCloseModal = () => setOpen(false)
 
     const fetchUsers = async (user) => {
         try {
             const q = query(
                 collection(db, 'users'),
-                where('__name__', '!=', user.uid),
+                where('__name__', '!=', user.uid)
             )
             const querySnapshot = await getDocs(q)
             let userList = []
@@ -48,7 +57,7 @@ const chatlist = () => {
         try {
             const q = query(
                 collection(db, 'groups'),
-                where('members', 'array-contains', user.uid),
+                where('members', 'array-contains', user.uid)
             )
             const querySnapshot = await getDocs(q)
             let groupList = []
@@ -113,24 +122,39 @@ const chatlist = () => {
     }
 
     // handles creating a new group chat
-    const handleCreateGroup = () => {
-        const groupName = prompt('Enter the group name')
+    const handleCreateGroup = async() => {
+        // const groupName = prompt('Enter the group name')
+        const date = new Date().getTime()
+        const storageRef = ref(storage, `groupImages/${date}`);
+        await uploadBytes(storageRef, groupPic);
+
+        // Get the download URL of the uploaded image
+        const imageUrl = await getDownloadURL(storageRef);
         if (groupName) {
             const groupData = {
                 name: groupName,
-                imageUrl: '',
+                imageUrl: imageUrl,
                 members: [user.uid],
             }
             const groupRef = collection(db, 'groups')
             addDoc(groupRef, groupData)
                 .then(() => {
                     console.log('added group data')
+                    onCloseModal()
+                    fetchGroups(user)
                 })
                 .catch((error) => {
                     console.log('Error creating group: ', error)
                 })
         }
     }
+
+    const onGroupImageUpload = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            setGroupPic(file);
+        }
+    };
 
     return (
         <>
@@ -139,6 +163,7 @@ const chatlist = () => {
                 image={image}
                 email={email}
                 handleLogout={handleLogout}
+                onOpenModal={onOpenModal}
             />
             <div className="h-full min-h-screen w-full py-4 bg-color-primary-300 dark:bg-color-surface-100 flex flex-col items-center ">
                 {people &&
@@ -198,12 +223,47 @@ const chatlist = () => {
                             </div>
                         </Link>
                     ))}
-                <div className="bg-lime-50 p-3 rounded-md hover:bg-lime-100">
-                    <button onClick={() => handleCreateGroup()}>
+                {/* <div className="bg-color-primary-200 p-3 rounded-md hover:bg-color-primary-200">
+                    <button onClick={onOpenModal}>
+                        <button onClick={() => handleCreateGroup()}>
                         Make a group
                     </button>
-                </div>
+                </div> */}
             </div>
+            <Modal
+                classNames={{
+                    modal: 'makeGrpModal',
+                }}
+                open={open}
+                onClose={onCloseModal}
+                center
+            >
+                <div className="flex flex-col items-center w-full">
+                    <h1 className="text-2xl font-semibold mb-14 text-white">
+                        Create a group
+                    </h1>
+                    <h3 className="text-xl text-white mb-2">Enter group name</h3>
+                    <input
+                        type="text"
+                        onChange={(e) => setGroupName(e.target.value)}
+                        placeholder="Enter group name"
+                        className="border-b-2 border-white bg-color-surface-200 outline-none rounded-md p-2 mb-2 text-white w-3/4"
+                    />
+                    <h3 className="text-xl text-white mb-2 mt-5">Upload group image</h3>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={onGroupImageUpload}
+                        className="border-b-2 border-white bg-color-surface-200 outline-none rounded-md p-2 mb-2 text-white w-3/4"
+                    />
+                    <button
+                        className="bg-color-primary-200 p-2 rounded-md hover:bg-color-primary-300 w-1/4"
+                        onClick={() => handleCreateGroup()}
+                    >
+                        Create
+                    </button>
+                </div>
+            </Modal>
         </>
     )
 }
