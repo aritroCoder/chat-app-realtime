@@ -76,8 +76,6 @@ const chatlist = () => {
               setName(userData.name || '')
               setEmail(userData.email || '')
               setImage(userData.imageUrl || '')
-              console.log(docSnap.data())
-              setDoc(doc(db, "users", user.uid), { name: docSnap.data().name, imageUrl: docSnap.data().imageUrl, email: docSnap.data().email, mobile: docSnap.data().mobile, bio: docSnap.data().bio, lastSeen: new Date() })
             }
           })
           .catch((error) => {

@@ -5,7 +5,7 @@ import { LuMoreVertical } from 'react-icons/lu';
 import { BiSolidPhoneCall } from 'react-icons/bi';
 import { AiFillFileText } from 'react-icons/ai';
 
-const Chatbar = ({image,name,status,lastSeen,downloadTxt}) => {
+const Chatbar = ({image,name,status,downloadTxt}) => {
   return (
       <div className="bg-green-500 dark:bg-color-surface-100 p-4 flex justify-between items-center">
           <div className='flex items-center'>
@@ -16,11 +16,10 @@ const Chatbar = ({image,name,status,lastSeen,downloadTxt}) => {
                   <h1 className="text-2xl font-semibold text-white">{name}</h1>
                   {/* connected symbol */}
                   <div className="flex items-center">
-                      {/* <div
+                      <div
                           className={`w-2 h-2 rounded-full mr-2 ${status ? 'bg-green-500' : 'bg-red-500'}`}
-                      ></div> */}
-                      <p className='text-white'>Last seen {lastSeen}</p>
-                      {/* <p className='text-white'>{status ? 'Online' : 'Offline'}</p> */}
+                      ></div>
+                      <p className='text-white'>{status ? 'Online' : 'Offline'}</p>
                   </div>
               </div>
           </div>
