@@ -45,6 +45,7 @@ const ChatApp = () => {
     )
     const [groupMembersId, setGroupMembersId] = useState([])
     const [groupMembers, setGroupMembers] = useState([])
+    const [downloadTxt, setDownloadTxt] = useState([])
 
     const onOpenModal = () => setOpen(true)
     const onCloseModal = () => setOpen(false)
@@ -85,8 +86,8 @@ const ChatApp = () => {
 
     // log save messages into firebase.
     useEffect(() => {
-        console.log(messages)
-        console.log(user)
+        // console.log(messages)
+        // console.log(user)
         if (groupId != '')
             setDoc(doc(db, 'messages', groupId), {
                 data: JSON.stringify(messages),
@@ -97,11 +98,11 @@ const ChatApp = () => {
     useEffect(() => {
         socket.on('message', (message) => {
             // get only those messages whose groupId matches our current group
-            console.log({ message })
+            // console.log({ message })
             let messageList = []
             if (message.groupId == groupId) {
                 // if the message is sent by our message reciever to us, only then add it to the list
-                console.log('recieved a message!')
+                // console.log('recieved a message!')
                 messageList.push(message)
             }
             setMessages((messages) => messages.concat(messageList))
@@ -125,7 +126,7 @@ const ChatApp = () => {
             const docRef = doc(db, 'messages', groupId)
             getDoc(docRef).then((docSnap) => {
                 if (docSnap.exists()) {
-                    console.log(docSnap.data().data)
+                    // console.log(docSnap.data().data)
                     setMessages(JSON.parse(docSnap.data().data))
                 }
             })
@@ -133,30 +134,44 @@ const ChatApp = () => {
     }, [groupId])
 
     // Function to download a text file with all the text messages
-    // TODO: update it for group
     const downloadTxtFile = () => {
         // Iterate through the messages array and find out the text strings and add them to a new array
         let textMessages = []
         const element = document.createElement('a')
-        messages.forEach((message) => {
+        messages.forEach(async(message) => {
+            let senderName = ''
+            const q = query(collection(db, 'users'))
+            const querySnapshot = await getDocs(q)
+            querySnapshot.forEach((doc) => {
+                const data = doc.data()
+                if (doc.id === message.sender) {
+                    senderName = data.name
+                }
+            })
             if (typeof message.message === 'string') {
                 textMessages.push({
                     message: message.message,
-                    sender: message.sender == user ? userName : recieverName,
-                    reciever:
-                        message.reciever == user ? userName : recieverName,
+                    sender: senderName,
                     time: message.time,
                 })
+                // console.log('testMessages', textMessages)
+                setDownloadTxt([...textMessages])
             }
         })
-        const file = new Blob([JSON.stringify(textMessages)], {
+    }
+
+    useEffect(() => {
+        if (downloadTxt.length == 0) return
+        const element = document.createElement('a')
+        const file = new Blob([JSON.stringify(downloadTxt)], {
             type: 'text/plain',
         })
         element.href = URL.createObjectURL(file)
-        element.download = `messages_${userName}_${recieverName}.txt`
+        element.download = `messages_${groupName}.txt`
         document.body.appendChild(element) // Required for this to work in FireFox
         element.click()
-    }
+    }, [downloadTxt])
+    
 
     // get current time
     function getCurrentTime() {
@@ -183,25 +198,6 @@ const ChatApp = () => {
                 chatContainerRef.current.scrollHeight
         }
     }, [messages])
-
-    // find the user detials from userid
-    // const fetchUser = async (id) => {
-    //     try {
-    //         const q = query(
-    //             collection(db, 'users'),
-    //             where('__name__', '!=', user),
-    //         )
-    //         const querySnapshot = await getDocs(q)
-    //         querySnapshot.forEach((doc) => {
-    //             const data = doc.data()
-    //             if (doc.id === id) {
-    //                 return data.name
-    //             }
-    //         })
-    //     } catch (error) {
-    //         console.error('Error fetching users:', error)
-    //     }
-    // }
 
     // get group data from id
     const getGroupData = async (groupId) => {
@@ -322,7 +318,7 @@ const ChatApp = () => {
                         })
                 },
             )
-            console.log(newMessage)
+            // console.log(newMessage)
 
             setNewMessage('')
         }
@@ -421,7 +417,7 @@ const ChatApp = () => {
                     <h1 className="text-2xl font-semibold mb-14 text-white">
                         Add participants to group
                     </h1>
-                    {console.log('people', people)}
+                    {/* {console.log('people', people)} */}
                     {/* Map through the people array and create show item for each of them */}
                     {people && people.map((person) => (
                         <div
