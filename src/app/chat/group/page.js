@@ -17,7 +17,7 @@ import {
 } from 'firebase/firestore'
 import { ref, getStorage, uploadBytes, getDownloadURL } from 'firebase/storage' // Storage module
 
-import Chatbar from '../../components/chatpage/Chatbar'
+import Chatbar from './Chatbar'
 import Chatbubble from '../../components/chatpage/Chatbubble'
 import Chatinput from '../../components/chatpage/Chatinput'
 
@@ -32,12 +32,12 @@ const ChatApp = () => {
     const [user, setUser] = useState('')
     const [userName, setUserName] = useState('UserName')
     const [userImage, setUserImage] = useState(
-        'https://images.ctfassets.net/hrltx12pl8hq/12wPNuS1sirO3hOes6l7Ds/9c69a51705b4a3421d65d6403ec815b1/non_cheesy_stock_photos_cover-edit.jpg',
+        ''
     )
     const [groupId, setGroupId] = useState('')
     const [groupName, setGroupName] = useState('')
     const [groupImg, setGroupImg] = useState(
-        'https://images.ctfassets.net/hrltx12pl8hq/12wPNuS1sirO3hOes6l7Ds/9c69a51705b4a3421d65d6403ec815b1/non_cheesy_stock_photos_cover-edit.jpg',
+        ''
     )
     const [groupMembersId, setGroupMembersId] = useState([])
     const [groupMembers, setGroupMembers] = useState([])
@@ -204,6 +204,7 @@ const ChatApp = () => {
                 if (doc.id == groupId) {
                     console.log(doc.data())
                     setGroupName(doc.data().name)
+                    setGroupImg(doc.data().imageUrl)
                     setGroupMembersId(doc.data().members)
                 }
             })
@@ -216,10 +217,22 @@ const ChatApp = () => {
     useEffect(() => {
         if (groupMembersId.length > 0) {
             let members = []
-            groupMembersId.forEach((memberId) => {
-                members.push(fetchUser(memberId))
+            groupMembersId.forEach(async (memberId) => {
+                // console.log('memberId', memberId)
+                // let memberName = await fetchUser(memberId)
+                const q = query(collection(db, 'users'))
+                const querySnapshot = await getDocs(q)
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data()
+                    if (doc.id === memberId) {
+                        // console.log('memberName', data.name)
+                        members.push(data.name)
+                        setGroupMembers([...members])
+                    }
+                })
             })
-            setGroupMembers(members)
+            // console.log('members', memberString)
+            // setGroupMembers(members)
         }
     }, [groupMembersId])
 
@@ -331,12 +344,13 @@ const ChatApp = () => {
     return (
         <div className="flex flex-col h-screen overflow-y-hidden">
             {/* Top Bar */}
-            <Chatbar
+            {/* {console.log('groupMembers', groupMembers)} */}
+            {groupMembers && <Chatbar
                 name={groupName}
                 image={groupImg}
-                status={isConnected}
+                groupMembers={groupMembers.join(', ')}
                 downloadTxt={downloadTxtFile}
-            ></Chatbar>
+            ></Chatbar>}
             <button onClick={() => addMember()}>add members</button>
             {/* Chat area */}
             <div className="flex pb-[10rem] bg-color-primary-500 dark:bg-color-surface-200 flex-col h-screen">
