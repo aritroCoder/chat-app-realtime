@@ -5,6 +5,8 @@ import { socket } from '../../utils/socket'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth, db } from '../../utils/firebase'
 import fetchUser from '../../utils/fetchuser'
+import 'react-responsive-modal/styles.css'
+import { Modal } from 'react-responsive-modal'
 import {
     collection,
     query,
@@ -34,6 +36,8 @@ const ChatApp = () => {
     const [userImage, setUserImage] = useState(
         ''
     )
+    const [people, setPeople] = useState('')
+    const [open, setOpen] = useState(false)
     const [groupId, setGroupId] = useState('')
     const [groupName, setGroupName] = useState('')
     const [groupImg, setGroupImg] = useState(
@@ -41,6 +45,9 @@ const ChatApp = () => {
     )
     const [groupMembersId, setGroupMembersId] = useState([])
     const [groupMembers, setGroupMembers] = useState([])
+
+    const onOpenModal = () => setOpen(true)
+    const onCloseModal = () => setOpen(false)
 
     // connect user to socket, set user profile and group id
     useEffect(() => {
@@ -341,6 +348,31 @@ const ChatApp = () => {
         addMemberToGroup()
     }, [groupMembersId])
 
+    useEffect(() => {
+        const fetchUsers = async (user) => {
+            try {
+                const q = query(
+                    collection(db, 'users'),
+                    where('__name__', '!=', user)
+                )
+                const querySnapshot = await getDocs(q)
+                let userList = []
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data()
+                    const id = doc.id
+                    userList.push({ id, ...data })
+                })
+                setPeople(userList)
+            } catch (error) {
+                console.error('Error fetching users:', error)
+            }
+        }
+        if (user) {
+            fetchUsers(user)
+        }
+    }, [open])
+    
+
     return (
         <div className="flex flex-col h-screen overflow-y-hidden">
             {/* Top Bar */}
@@ -350,8 +382,9 @@ const ChatApp = () => {
                 image={groupImg}
                 groupMembers={groupMembers.join(', ')}
                 downloadTxt={downloadTxtFile}
+                addMember={onOpenModal}
             ></Chatbar>}
-            <button onClick={() => addMember()}>add members</button>
+            {/* <button onClick={() => addMember()}>add members</button> */}
             {/* Chat area */}
             <div className="flex pb-[10rem] bg-color-primary-500 dark:bg-color-surface-200 flex-col h-screen">
                 <div
@@ -376,6 +409,50 @@ const ChatApp = () => {
                     handleSendMessage={handleSendMessage}
                 ></Chatinput>
             </div>
+            <Modal
+                classNames={{
+                    modal: 'addParticipantModal',
+                }}
+                open={open}
+                onClose={onCloseModal}
+                center
+            >
+                <div className="flex flex-col items-center w-full">
+                    <h1 className="text-2xl font-semibold mb-14 text-white">
+                        Add participants to group
+                    </h1>
+                    {console.log('people', people)}
+                    {/* Map through the people array and create show item for each of them */}
+                    {people && people.map((person) => (
+                        <div
+                            key={person.id}
+                            className="flex justify-between overflow-auto items-center w-full px-4 py-2 mb-2 bg-color-surface-300 rounded-md"
+                        >
+                            <div className="flex items-center">
+                                <img
+                                    className="w-8 h-8 rounded-full mr-2"
+                                    src={person.imageUrl}
+                                    alt=""
+                                />
+                                <p className="text-white">{person.name}</p>
+                            </div>
+                            <button
+                                className="bg-color-primary-200 p-2 rounded-md hover:bg-color-primary-300"
+                                onClick={() => {
+                                    setGroupMembersId((prev) => [
+                                        ...prev,
+                                        person.id,
+                                    ])
+                                }}
+                            >
+                                Add
+                            </button>
+                        </div>
+                    ))
+                    }
+                    
+                </div>
+            </Modal>
         </div>
     )
 }
