@@ -1,7 +1,6 @@
 'use client'
 import React from 'react'
 import { BsFillCameraVideoFill } from 'react-icons/bs'
-// import { LuMoreVertical } from 'react-icons/lu'
 import { BiSolidPhoneCall } from 'react-icons/bi'
 import { AiFillFileText } from 'react-icons/ai'
 import { TbMinusVertical } from 'react-icons/tb'
@@ -42,11 +41,6 @@ const Chatbar = ({
                     </h1>
                     {/* connected symbol */}
                     <div className="flex items-center">
-                        {/* <div
-                          className={`w-2 h-2 rounded-full mr-2 ${status ? 'bg-green-500' : 'bg-red-500'}`}
-                      ></div> */}
-
-                        {/* <p className='text-white'>{status ? 'Online' : 'Offline'}</p> */}
                         <p className="text-white">{groupMembers}</p>
                     </div>
                 </div>
