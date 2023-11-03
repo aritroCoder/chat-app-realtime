@@ -199,7 +199,7 @@ const chatlist = () => {
                                 <div className="w-12 h-12 mx-5">
                                     <img
                                         className="rounded-full h-12 border-2 border-black dark:border-green-500"
-                                        src={person.imageUrl}
+                                        src={person.imageUrl !== '' ? person.imageUrl : 'https://cdn-icons-png.flaticon.com/512/6596/6596121.png'}
                                         alt=""
                                     />
                                 </div>

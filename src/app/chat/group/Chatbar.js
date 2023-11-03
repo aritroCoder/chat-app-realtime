@@ -1,11 +1,14 @@
 'use client'
 import React from 'react'
-import { BsFillCameraVideoFill, BsPersonFillAdd } from 'react-icons/bs'
-import { LuMoreVertical } from 'react-icons/lu'
+import { BsFillCameraVideoFill } from 'react-icons/bs'
+// import { LuMoreVertical } from 'react-icons/lu'
 import { BiSolidPhoneCall } from 'react-icons/bi'
 import { AiFillFileText } from 'react-icons/ai'
+import { TbMinusVertical } from 'react-icons/tb'
+import { ImExit } from 'react-icons/im'
+import { MdGroupRemove, MdGroupAdd } from 'react-icons/md'
 
-const Chatbar = ({ image, name, groupMembers, downloadTxt, lastSeen, addMember }) => {
+const Chatbar = ({ image, name, groupMembers, downloadTxt, lastSeen, addMember, removeMember, exitGroup }) => {
     return (
         <div className="bg-green-500 dark:bg-color-surface-100 p-4 flex justify-between items-center">
             <div className="flex items-center">
@@ -32,14 +35,26 @@ const Chatbar = ({ image, name, groupMembers, downloadTxt, lastSeen, addMember }
                 </div>
             </div>
             <div className="flex">
+                <button className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md" onClick={exitGroup}>
+                    <ImExit />
+                </button>
+                <button className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md" onClick={removeMember}>
+                    <MdGroupRemove />
+                </button>
                 <button className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md" onClick={addMember}>
-                    <BsPersonFillAdd />
+                    <MdGroupAdd />
+                </button>
+                <button className=" py-2 bg-transparent text-gray-200 text-4xl rounded-md" disabled>
+                    <TbMinusVertical />
                 </button>
                 <button className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md">
                     <BiSolidPhoneCall />
                 </button>
                 <button className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md">
                     <BsFillCameraVideoFill />
+                </button>
+                <button className=" py-2 bg-transparent text-gray-200 text-4xl rounded-md" disabled>
+                    <TbMinusVertical />
                 </button>
                 <button
                     className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md"

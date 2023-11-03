@@ -38,6 +38,7 @@ const ChatApp = () => {
     )
     const [people, setPeople] = useState('')
     const [open, setOpen] = useState(false)
+    const [openRemove, setOpenRemove] = useState(false)
     const [groupId, setGroupId] = useState('')
     const [groupName, setGroupName] = useState('')
     const [groupImg, setGroupImg] = useState(
@@ -49,6 +50,8 @@ const ChatApp = () => {
 
     const onOpenModal = () => setOpen(true)
     const onCloseModal = () => setOpen(false)
+    const onOpenRemoveModal = () => setOpenRemove(true)
+    const onCloseRemoveModal = () => setOpenRemove(false)
 
     // connect user to socket, set user profile and group id
     useEffect(() => {
@@ -199,7 +202,6 @@ const ChatApp = () => {
             const querySnapshot = await getDocs(collection(db, 'groups'))
             querySnapshot.forEach((doc) => {
                 if (doc.id == groupId) {
-                    console.log(doc.data())
                     setGroupName(doc.data().name)
                     setGroupImg(doc.data().imageUrl)
                     setGroupMembersId(doc.data().members)
@@ -220,7 +222,8 @@ const ChatApp = () => {
                 querySnapshot.forEach((doc) => {
                     const data = doc.data()
                     if (doc.id === memberId) {
-                        members.push(data.name)
+                        // members.push(doc.id,...data)
+                        members.push({ id: doc.id, ...data })
                         setGroupMembers([...members])
                     }
                 })
@@ -252,7 +255,6 @@ const ChatApp = () => {
             })
             setNewMessage('')
         } else if (typeof newMessage !== 'string') {
-            console.log(newMessage)
             let date = new Date()
             let metadata
             if (newMessage.type === 'image') {
@@ -275,10 +277,8 @@ const ChatApp = () => {
             const storageRef = ref(storage, `chats/${groupId + date}`)
             uploadBytes(storageRef, newMessage.url, metadata).then(
                 (snapshot) => {
-                    console.log('Uploaded a blob or file!')
                     getDownloadURL(storageRef)
                         .then((downloadURL) => {
-                            console.log('File available at', downloadURL)
                             setMessages([
                                 ...messages,
                                 {
@@ -356,6 +356,31 @@ const ChatApp = () => {
         }
     }, [open,messages])
     
+    const removeMember = async (memberId) => {
+        console.log('memberId', memberId)
+        if (confirm('Are you sure you want to remove this member?')) {
+            setGroupMembersId((prev) => prev.filter((id) => id !== memberId))
+            const docRef = doc(db, 'groups', groupId)
+            await setDoc(docRef, {
+                imageUrl: groupImg,
+                members: groupMembersId.filter((id) => id !== memberId),
+                name: groupName,
+            })
+        }
+    }
+
+
+    const exitGroup = async () => {
+        if (confirm('Are you sure you want to exit this group?')) {
+            const docRef = doc(db, 'groups', groupId)
+            await setDoc(docRef, {
+                imageUrl: groupImg,
+                members: groupMembersId.filter((id) => id !== user),
+                name: groupName,
+            })
+            router.push('/chatlist')
+        }
+    }
 
     return (
         <div className="flex flex-col h-screen overflow-y-hidden">
@@ -363,9 +388,11 @@ const ChatApp = () => {
             {groupMembers && <Chatbar
                 name={groupName}
                 image={groupImg}
-                groupMembers={groupMembers.join(', ')}
+                groupMembers={groupMembers.map((member) => member.name).join(', ')}
                 downloadTxt={downloadTxtFile}
                 addMember={onOpenModal}
+                removeMember={onOpenRemoveModal}
+                exitGroup={exitGroup}
             ></Chatbar>}
             {/* Chat area */}
             <div className="flex pb-[10rem] bg-color-primary-500 dark:bg-color-surface-200 flex-col h-screen">
@@ -392,6 +419,7 @@ const ChatApp = () => {
                     handleSendMessage={handleSendMessage}
                 ></Chatinput>
             </div>
+            {/* Modal to add participants in the group */}
             <Modal
                 classNames={{
                     modal: 'addParticipantModal',
@@ -409,7 +437,7 @@ const ChatApp = () => {
                         <div
                             key={person.id}
                             className="flex justify-between overflow-auto items-center w-full px-4 py-2 mb-2 bg-color-surface-300 rounded-md"
-                        >   {console.log('person.imageUrl', person.imageUrl)}
+                        > 
                             <div className="flex items-center">
                                 <img
                                     className="w-8 h-8 rounded-full mr-2"
@@ -430,6 +458,45 @@ const ChatApp = () => {
                                 }}
                             >
                                 {groupMembersId.includes(person.id)?'Added':'Add'}
+                            </button>
+                        </div>
+                    ))
+                    }
+                    
+                </div>
+            </Modal>
+            {/* Modal to remove participants from the group */}
+            <Modal
+                classNames={{
+                    modal: 'addParticipantModal',
+                }}
+                open={openRemove}
+                onClose={onCloseRemoveModal}
+                center
+            >
+                <div className="flex flex-col items-center w-full">
+                    <h1 className="text-2xl font-semibold mb-14 text-white">
+                        Add participants to group
+                    </h1>
+                    {/* Map through the people array and create show item for each of them */}
+                    {groupMembers && groupMembers.map((person) => (
+                        <div
+                            key={person.id}
+                            className="flex justify-between overflow-auto items-center w-full px-4 py-2 mb-2 bg-color-surface-300 rounded-md"
+                        >
+                            <div className="flex items-center">
+                                <img
+                                    className="w-8 h-8 rounded-full mr-2"
+                                    src={person.imageUrl !== '' ? person.imageUrl :'https://cdn-icons-png.flaticon.com/512/6596/6596121.png'}
+                                    alt=""
+                                />
+                                <p className="text-white">{person.name}</p>
+                            </div>
+                            <button
+                                className={`bg-color-primary-200 p-2 rounded-md  `}
+                                onClick={() => {removeMember(person.id)}}
+                            >
+                                Remove
                             </button>
                         </div>
                     ))
