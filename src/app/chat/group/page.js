@@ -20,7 +20,7 @@ import {
 import { ref, getStorage, uploadBytes, getDownloadURL } from 'firebase/storage' // Storage module
 
 import Chatbar from './Chatbar'
-import Chatbubble from '../../components/chatpage/Chatbubble'
+import Chatbubble from './Chatbubble'
 import Chatinput from '../../components/chatpage/Chatinput'
 
 const ChatApp = () => {
@@ -86,8 +86,6 @@ const ChatApp = () => {
 
     // log save messages into firebase.
     useEffect(() => {
-        // console.log(messages)
-        // console.log(user)
         if (groupId != '')
             setDoc(doc(db, 'messages', groupId), {
                 data: JSON.stringify(messages),
@@ -98,11 +96,9 @@ const ChatApp = () => {
     useEffect(() => {
         socket.on('message', (message) => {
             // get only those messages whose groupId matches our current group
-            // console.log({ message })
             let messageList = []
             if (message.groupId == groupId) {
                 // if the message is sent by our message reciever to us, only then add it to the list
-                // console.log('recieved a message!')
                 messageList.push(message)
             }
             setMessages((messages) => messages.concat(messageList))
@@ -126,7 +122,6 @@ const ChatApp = () => {
             const docRef = doc(db, 'messages', groupId)
             getDoc(docRef).then((docSnap) => {
                 if (docSnap.exists()) {
-                    // console.log(docSnap.data().data)
                     setMessages(JSON.parse(docSnap.data().data))
                 }
             })
@@ -154,7 +149,6 @@ const ChatApp = () => {
                     sender: senderName,
                     time: message.time,
                 })
-                // console.log('testMessages', textMessages)
                 setDownloadTxt([...textMessages])
             }
         })
@@ -221,21 +215,16 @@ const ChatApp = () => {
         if (groupMembersId.length > 0) {
             let members = []
             groupMembersId.forEach(async (memberId) => {
-                // console.log('memberId', memberId)
-                // let memberName = await fetchUser(memberId)
                 const q = query(collection(db, 'users'))
                 const querySnapshot = await getDocs(q)
                 querySnapshot.forEach((doc) => {
                     const data = doc.data()
                     if (doc.id === memberId) {
-                        // console.log('memberName', data.name)
                         members.push(data.name)
                         setGroupMembers([...members])
                     }
                 })
             })
-            // console.log('members', memberString)
-            // setGroupMembers(members)
         }
     }, [groupMembersId])
 
@@ -318,7 +307,6 @@ const ChatApp = () => {
                         })
                 },
             )
-            // console.log(newMessage)
 
             setNewMessage('')
         }
@@ -366,13 +354,12 @@ const ChatApp = () => {
         if (user) {
             fetchUsers(user)
         }
-    }, [open])
+    }, [open,messages])
     
 
     return (
         <div className="flex flex-col h-screen overflow-y-hidden">
             {/* Top Bar */}
-            {/* {console.log('groupMembers', groupMembers)} */}
             {groupMembers && <Chatbar
                 name={groupName}
                 image={groupImg}
@@ -380,7 +367,6 @@ const ChatApp = () => {
                 downloadTxt={downloadTxtFile}
                 addMember={onOpenModal}
             ></Chatbar>}
-            {/* <button onClick={() => addMember()}>add members</button> */}
             {/* Chat area */}
             <div className="flex pb-[10rem] bg-color-primary-500 dark:bg-color-surface-200 flex-col h-screen">
                 <div
@@ -389,12 +375,13 @@ const ChatApp = () => {
                     id="scroll"
                 >
                     <div className="flex flex-1 flex-col space-y-4 h-[100%]">
-                        {messages.map((message, index) => (
+                        {people && messages.map((message, index) => (
                             <Chatbubble
                                 key={index}
                                 message={message}
                                 index={index}
                                 user={user}
+                                people={people}
                             ></Chatbubble>
                         ))}
                     </div>
@@ -417,7 +404,6 @@ const ChatApp = () => {
                     <h1 className="text-2xl font-semibold mb-14 text-white">
                         Add participants to group
                     </h1>
-                    {/* {console.log('people', people)} */}
                     {/* Map through the people array and create show item for each of them */}
                     {people && people.map((person) => (
                         <div
