@@ -29,6 +29,7 @@ const chatlist = () => {
     const [open, setOpen] = useState(false)
     const [groupName, setGroupName] = useState('')
     const [groupPic, setGroupPic] = useState('')
+    const [groupMembers, setGroupMembers] = useState([])
 
     const onOpenModal = () => setOpen(true)
     const onCloseModal = () => setOpen(false)
@@ -85,7 +86,6 @@ const chatlist = () => {
                             setName(userData.name || '')
                             setEmail(userData.email || '')
                             setImage(userData.imageUrl || '')
-                            // console.log(docSnap.data())
                             setDoc(doc(db, 'users', user.uid), {
                                 name: docSnap.data().name,
                                 imageUrl: docSnap.data().imageUrl,
@@ -102,7 +102,6 @@ const chatlist = () => {
                 fetchUsers(user)
                 fetchGroups(user)
             } else {
-                // alert('Please login to continue');
                 push('/')
             }
         })
@@ -156,6 +155,25 @@ const chatlist = () => {
         }
     };
 
+    useEffect(() => {
+        // For each group, get the names of the members in form of a 2D array of objects
+        const groupMembersId = groups.map((group) => group.members).flat()
+        if (groupMembersId.length > 0) {
+            let members = []
+            groupMembersId.forEach(async (memberId) => {
+                const q = query(collection(db, 'users'))
+                const querySnapshot = await getDocs(q)
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data()
+                    if (doc.id === memberId) {
+                        members.push({memberId: memberId,name: data.name})
+                        setGroupMembers([...members])
+                    }
+                })
+            })
+        }
+    }, [groups])
+
     return (
         <>
             <Chatlistbar
@@ -165,6 +183,7 @@ const chatlist = () => {
                 handleLogout={handleLogout}
                 onOpenModal={onOpenModal}
             />
+            {console.log('groupMembers', groupMembers)}
             <div className="h-full min-h-screen w-full py-4 bg-color-primary-300 dark:bg-color-surface-100 flex flex-col items-center ">
                 {people &&
                     people.map((person, index) => (
@@ -209,7 +228,7 @@ const chatlist = () => {
                                 <div className="w-12 h-12 mx-5">
                                     <img
                                         className="rounded-full h-12 border-2 border-black dark:border-green-500"
-                                        src={group.imageUrl}
+                                        src={group.imageUrl !== '' ? group.imageUrl :'https://cdn-icons-png.flaticon.com/512/6596/6596121.png'}
                                         alt=""
                                     />
                                 </div>
@@ -218,17 +237,22 @@ const chatlist = () => {
                                         {group.name}
                                     </h1>
                                     {/*TODO: add group members names from uids using a util function*/}
-                                    {/* <h1 className="text-lg text-white">{person.email}</h1> */}
+                                    {/* Find the name of the members of this particular group form the groupMembers by cheking the id of the group member with groupMembers */}
+                                    <div className='flex'>
+                                    {groupMembers.length>0 &&
+                                        group.members.map((memberId, index) => {
+                                            const memberName = groupMembers.find(member => member.memberId === memberId)
+                                            return <h1 className="text-lg text-white inline" key={index}>
+                                                {`${memberName.name},`}&nbsp;
+                                            </h1>
+                                        }
+                                        )
+                                    }
+                                    </div>
                                 </div>
                             </div>
                         </Link>
                     ))}
-                {/* <div className="bg-color-primary-200 p-3 rounded-md hover:bg-color-primary-200">
-                    <button onClick={onOpenModal}>
-                        <button onClick={() => handleCreateGroup()}>
-                        Make a group
-                    </button>
-                </div> */}
             </div>
             <Modal
                 classNames={{

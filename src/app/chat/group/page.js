@@ -409,25 +409,27 @@ const ChatApp = () => {
                         <div
                             key={person.id}
                             className="flex justify-between overflow-auto items-center w-full px-4 py-2 mb-2 bg-color-surface-300 rounded-md"
-                        >
+                        >   {console.log('person.imageUrl', person.imageUrl)}
                             <div className="flex items-center">
                                 <img
                                     className="w-8 h-8 rounded-full mr-2"
-                                    src={person.imageUrl}
+                                    src={person.imageUrl !== '' ? person.imageUrl :'https://cdn-icons-png.flaticon.com/512/6596/6596121.png'}
                                     alt=""
                                 />
                                 <p className="text-white">{person.name}</p>
                             </div>
                             <button
-                                className="bg-color-primary-200 p-2 rounded-md hover:bg-color-primary-300"
+                                className={`bg-color-primary-200 p-2 rounded-md  ${groupMembersId.includes(person.id) ? 'text-white bg-color-primary-400' :'text-white hover:bg-color-primary-300'}`}
+                                disabled={groupMembersId.includes(person.id)}
                                 onClick={() => {
+                                    if(groupMembersId.includes(person.id)) return
                                     setGroupMembersId((prev) => [
                                         ...prev,
                                         person.id,
                                     ])
                                 }}
                             >
-                                Add
+                                {groupMembersId.includes(person.id)?'Added':'Add'}
                             </button>
                         </div>
                     ))
