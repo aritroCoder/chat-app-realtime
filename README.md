@@ -2,7 +2,6 @@ This is a Next.js based internet chat app prototype
 
 ![image](https://github.com/aritroCoder/chat-app-realtime/assets/92646038/c3eee924-83ca-4247-8a9d-cf33e885fa34)
 
-
 ## Getting Started
 
 First, run the development server:

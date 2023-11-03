@@ -1,23 +1,23 @@
 /* In your component's CSS file or a global stylesheet */
 
 .google-login-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #4285f4; /* Google Blue */
-  color: #ffffff; /* White text color */
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #4285f4; /* Google Blue */
+    color: #ffffff; /* White text color */
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
 }
 
 .google-login-button:hover {
-  background-color: #357ae8; /* Slightly darker blue on hover */
+    background-color: #357ae8; /* Slightly darker blue on hover */
 }
 
 .google-logo {
-  width: 24px;
-  height: 24px;
+    width: 24px;
+    height: 24px;
 }

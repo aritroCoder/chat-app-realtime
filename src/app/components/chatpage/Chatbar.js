@@ -36,10 +36,18 @@ const Chatbar = ({ image, name, status, downloadTxt, lastSeen }) => {
                 </div>
             </div>
             <div className="flex">
-                <button data-tooltip-id="call" data-tooltip-content="Audio Call" className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md">
+                <button
+                    data-tooltip-id="call"
+                    data-tooltip-content="Audio Call"
+                    className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md"
+                >
                     <BiSolidPhoneCall />
                 </button>
-                <button data-tooltip-id="video" data-tooltip-content="Video Call" className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md">
+                <button
+                    data-tooltip-id="video"
+                    data-tooltip-content="Video Call"
+                    className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md"
+                >
                     <BsFillCameraVideoFill />
                 </button>
                 <button
@@ -47,7 +55,8 @@ const Chatbar = ({ image, name, status, downloadTxt, lastSeen }) => {
                     onClick={() => {
                         downloadTxt()
                     }}
-                    data-tooltip-id="export" data-tooltip-content="Export Chat"
+                    data-tooltip-id="export"
+                    data-tooltip-content="Export Chat"
                 >
                     <AiFillFileText />
                 </button>

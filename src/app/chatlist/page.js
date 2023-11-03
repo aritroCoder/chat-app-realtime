@@ -15,7 +15,7 @@ import {
     setDoc,
     addDoc,
 } from 'firebase/firestore'
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Storage module
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage' // Storage module
 import Link from 'next/link'
 
 const chatlist = () => {
@@ -38,7 +38,7 @@ const chatlist = () => {
         try {
             const q = query(
                 collection(db, 'users'),
-                where('__name__', '!=', user.uid)
+                where('__name__', '!=', user.uid),
             )
             const querySnapshot = await getDocs(q)
             let userList = []
@@ -58,7 +58,7 @@ const chatlist = () => {
         try {
             const q = query(
                 collection(db, 'groups'),
-                where('members', 'array-contains', user.uid)
+                where('members', 'array-contains', user.uid),
             )
             const querySnapshot = await getDocs(q)
             let groupList = []
@@ -121,14 +121,14 @@ const chatlist = () => {
     }
 
     // handles creating a new group chat
-    const handleCreateGroup = async() => {
+    const handleCreateGroup = async () => {
         // const groupName = prompt('Enter the group name')
         const date = new Date().getTime()
-        const storageRef = ref(storage, `groupImages/${date}`);
-        await uploadBytes(storageRef, groupPic);
+        const storageRef = ref(storage, `groupImages/${date}`)
+        await uploadBytes(storageRef, groupPic)
 
         // Get the download URL of the uploaded image
-        const imageUrl = await getDownloadURL(storageRef);
+        const imageUrl = await getDownloadURL(storageRef)
         if (groupName) {
             const groupData = {
                 name: groupName,
@@ -149,11 +149,11 @@ const chatlist = () => {
     }
 
     const onGroupImageUpload = (event) => {
-        const file = event.target.files[0];
+        const file = event.target.files[0]
         if (file) {
-            setGroupPic(file);
+            setGroupPic(file)
         }
-    };
+    }
 
     useEffect(() => {
         // For each group, get the names of the members in form of a 2D array of objects
@@ -166,7 +166,7 @@ const chatlist = () => {
                 querySnapshot.forEach((doc) => {
                     const data = doc.data()
                     if (doc.id === memberId) {
-                        members.push({memberId: memberId,name: data.name})
+                        members.push({ memberId: memberId, name: data.name })
                         setGroupMembers([...members])
                     }
                 })
@@ -199,7 +199,11 @@ const chatlist = () => {
                                 <div className="w-12 h-12 mx-5">
                                     <img
                                         className="rounded-full h-12 border-2 border-black dark:border-green-500"
-                                        src={person.imageUrl !== '' ? person.imageUrl : 'https://cdn-icons-png.flaticon.com/512/6596/6596121.png'}
+                                        src={
+                                            person.imageUrl !== ''
+                                                ? person.imageUrl
+                                                : 'https://cdn-icons-png.flaticon.com/512/6596/6596121.png'
+                                        }
                                         alt=""
                                     />
                                 </div>
@@ -228,7 +232,11 @@ const chatlist = () => {
                                 <div className="w-12 h-12 mx-5">
                                     <img
                                         className="rounded-full h-12 border-2 border-black dark:border-green-500"
-                                        src={group.imageUrl !== '' ? group.imageUrl :'https://cdn-icons-png.flaticon.com/512/6596/6596121.png'}
+                                        src={
+                                            group.imageUrl !== ''
+                                                ? group.imageUrl
+                                                : 'https://cdn-icons-png.flaticon.com/512/6596/6596121.png'
+                                        }
                                         alt=""
                                     />
                                 </div>
@@ -238,16 +246,27 @@ const chatlist = () => {
                                     </h1>
                                     {/*TODO: add group members names from uids using a util function*/}
                                     {/* Find the name of the members of this particular group form the groupMembers by cheking the id of the group member with groupMembers */}
-                                    <div className='flex'>
-                                    {groupMembers.length>0 &&
-                                        group.members.map((memberId, index) => {
-                                            const memberName = groupMembers.find(member => member.memberId === memberId)
-                                            return <h1 className="text-lg text-white inline" key={index}>
-                                                {`${memberName.name},`}&nbsp;
-                                            </h1>
-                                        }
-                                        )
-                                    }
+                                    <div className="flex">
+                                        {groupMembers.length > 0 &&
+                                            group.members.map(
+                                                (memberId, index) => {
+                                                    const memberName =
+                                                        groupMembers.find(
+                                                            (member) =>
+                                                                member.memberId ===
+                                                                memberId,
+                                                        )
+                                                    return (
+                                                        <h1
+                                                            className="text-lg text-white inline"
+                                                            key={index}
+                                                        >
+                                                            {`${memberName.name},`}
+                                                            &nbsp;
+                                                        </h1>
+                                                    )
+                                                },
+                                            )}
                                     </div>
                                 </div>
                             </div>
@@ -266,14 +285,18 @@ const chatlist = () => {
                     <h1 className="text-2xl font-semibold mb-14 text-white">
                         Create a group
                     </h1>
-                    <h3 className="text-xl text-white mb-2">Enter group name</h3>
+                    <h3 className="text-xl text-white mb-2">
+                        Enter group name
+                    </h3>
                     <input
                         type="text"
                         onChange={(e) => setGroupName(e.target.value)}
                         placeholder="Enter group name"
                         className="border-b-2 border-white bg-color-surface-200 outline-none rounded-md p-2 mb-2 text-white w-3/4"
                     />
-                    <h3 className="text-xl text-white mb-2 mt-5">Upload group image</h3>
+                    <h3 className="text-xl text-white mb-2 mt-5">
+                        Upload group image
+                    </h3>
                     <input
                         type="file"
                         accept="image/*"

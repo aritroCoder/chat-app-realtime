@@ -10,7 +10,16 @@ import { MdGroupRemove, MdGroupAdd } from 'react-icons/md'
 import 'react-tooltip/dist/react-tooltip.css'
 import { Tooltip } from 'react-tooltip'
 
-const Chatbar = ({ image, name, groupMembers, downloadTxt, lastSeen, addMember, removeMember, exitGroup }) => {
+const Chatbar = ({
+    image,
+    name,
+    groupMembers,
+    downloadTxt,
+    lastSeen,
+    addMember,
+    removeMember,
+    exitGroup,
+}) => {
     return (
         <div className="bg-green-500 dark:bg-color-surface-100 p-4 flex justify-between items-center">
             <Tooltip id="exit-group" />
@@ -43,25 +52,54 @@ const Chatbar = ({ image, name, groupMembers, downloadTxt, lastSeen, addMember, 
                 </div>
             </div>
             <div className="flex">
-                <button data-tooltip-id="exit-group" data-tooltip-content="Exit Group" className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md" onClick={exitGroup}>
+                <button
+                    data-tooltip-id="exit-group"
+                    data-tooltip-content="Exit Group"
+                    className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md"
+                    onClick={exitGroup}
+                >
                     <ImExit />
                 </button>
-                <button data-tooltip-id="remove-group" data-tooltip-content="Remove Participants" className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md" onClick={removeMember}>
+                <button
+                    data-tooltip-id="remove-group"
+                    data-tooltip-content="Remove Participants"
+                    className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md"
+                    onClick={removeMember}
+                >
                     <MdGroupRemove />
                 </button>
-                <button data-tooltip-id="add-group" data-tooltip-content="Add Participants" className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md" onClick={addMember}>
+                <button
+                    data-tooltip-id="add-group"
+                    data-tooltip-content="Add Participants"
+                    className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md"
+                    onClick={addMember}
+                >
                     <MdGroupAdd />
                 </button>
-                <button className=" py-2 bg-transparent text-gray-200 text-4xl rounded-md" disabled>
+                <button
+                    className=" py-2 bg-transparent text-gray-200 text-4xl rounded-md"
+                    disabled
+                >
                     <TbMinusVertical />
                 </button>
-                <button data-tooltip-id="call-group" data-tooltip-content="Audio Call" className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md">
+                <button
+                    data-tooltip-id="call-group"
+                    data-tooltip-content="Audio Call"
+                    className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md"
+                >
                     <BiSolidPhoneCall />
                 </button>
-                <button data-tooltip-id="video-group" data-tooltip-content="Video Call" className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md">
+                <button
+                    data-tooltip-id="video-group"
+                    data-tooltip-content="Video Call"
+                    className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md"
+                >
                     <BsFillCameraVideoFill />
                 </button>
-                <button className=" py-2 bg-transparent text-gray-200 text-4xl rounded-md" disabled>
+                <button
+                    className=" py-2 bg-transparent text-gray-200 text-4xl rounded-md"
+                    disabled
+                >
                     <TbMinusVertical />
                 </button>
                 <button
@@ -69,7 +107,8 @@ const Chatbar = ({ image, name, groupMembers, downloadTxt, lastSeen, addMember, 
                     onClick={() => {
                         downloadTxt()
                     }}
-                    data-tooltip-id="export-group" data-tooltip-content="Export Chat"
+                    data-tooltip-id="export-group"
+                    data-tooltip-content="Export Chat"
                 >
                     <AiFillFileText />
                 </button>

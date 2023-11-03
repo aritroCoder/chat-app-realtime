@@ -1,23 +1,23 @@
-"use client";
-import React, { useState, useRef, useEffect } from 'react';
-import { BsPencilSquare } from 'react-icons/bs';
-import { onAuthStateChanged } from "firebase/auth";
-import { auth, db, storage } from '../utils/firebase';
-import { doc, setDoc, getDoc } from "firebase/firestore";
-import { ref, getStorage, uploadBytes, getDownloadURL } from "firebase/storage"; // Storage module
-import { useRouter } from 'next/navigation';
+'use client'
+import React, { useState, useRef, useEffect } from 'react'
+import { BsPencilSquare } from 'react-icons/bs'
+import { onAuthStateChanged } from 'firebase/auth'
+import { auth, db, storage } from '../utils/firebase'
+import { doc, setDoc, getDoc } from 'firebase/firestore'
+import { ref, getStorage, uploadBytes, getDownloadURL } from 'firebase/storage' // Storage module
+import { useRouter } from 'next/navigation'
 
 const Profile = () => {
-    const fileInputRef = useRef(null);
-    const [profileImage, setProfileImage] = useState(null);
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [mobile, setMobile] = useState('');
-    const [bio, setBio] = useState('');
+    const fileInputRef = useRef(null)
+    const [profileImage, setProfileImage] = useState(null)
+    const [name, setName] = useState('')
+    const [email, setEmail] = useState('')
+    const [mobile, setMobile] = useState('')
+    const [bio, setBio] = useState('')
     const [imageFile, setImageFile] = useState('')
     const [userUid, setUserUid] = useState('')
     const [docRef, setDocRef] = useState('')
-    const { push } = useRouter();
+    const { push } = useRouter()
 
     useEffect(() => {
         onAuthStateChanged(auth, async (user) => {
@@ -25,42 +25,41 @@ const Profile = () => {
                 try {
                     // Retrieve user data from Firestore based on the user's UID
                     setUserUid(user.uid)
-                    const userDocRef = doc(db, 'users', user.uid);
+                    const userDocRef = doc(db, 'users', user.uid)
                     setDocRef(userDocRef)
-                    const userDocSnapshot = await getDoc(userDocRef);
+                    const userDocSnapshot = await getDoc(userDocRef)
 
                     if (userDocSnapshot.exists()) {
-                        const userData = userDocSnapshot.data();
-                        setName(userData.name || '');
-                        setEmail(userData.email || '');
-                        setMobile(userData.mobile || '');
-                        setProfileImage(userData.imageUrl || '');
-                        setBio(userData.bio || '');
-                    }
-                    else{
-                        setName(user.displayName);
-                        setEmail(user.email);
-                        setMobile(user.phoneNumber);
+                        const userData = userDocSnapshot.data()
+                        setName(userData.name || '')
+                        setEmail(userData.email || '')
+                        setMobile(userData.mobile || '')
+                        setProfileImage(userData.imageUrl || '')
+                        setBio(userData.bio || '')
+                    } else {
+                        setName(user.displayName)
+                        setEmail(user.email)
+                        setMobile(user.phoneNumber)
                     }
                 } catch (error) {
-                    console.error("Error fetching user data:", error);
+                    console.error('Error fetching user data:', error)
                 }
             } else {
-                alert('Please login to continue');
-                push('/');
+                alert('Please login to continue')
+                push('/')
             }
-        });
-    }, []);
+        })
+    }, [])
 
-    const handleSubmit = async(e) => {
-        e.preventDefault();
-        console.log(name, email, mobile, bio, imageFile);
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        console.log(name, email, mobile, bio, imageFile)
         // Upload the user's image to Firebase Storage (assuming you have access to the image file)
-        const storageRef = ref(storage, `userImages/${userUid}`);
-        await uploadBytes(storageRef, imageFile);
+        const storageRef = ref(storage, `userImages/${userUid}`)
+        await uploadBytes(storageRef, imageFile)
 
         // Get the download URL of the uploaded image
-        const imageUrl = await getDownloadURL(storageRef);
+        const imageUrl = await getDownloadURL(storageRef)
         await setDoc(docRef, {
             name,
             mobile,
@@ -69,52 +68,62 @@ const Profile = () => {
             bio,
         })
             .then(() => {
-                console.log("Document added successfully!");
+                console.log('Document added successfully!')
                 // Save the user info to local storage
                 let userinfo = {
-                    "uid" : userUid,
-                    "name" : name,
-                    "email" : email,
-                    "mobile": mobile,
-                    "image" : imageUrl,
-                    "bio" : bio
+                    uid: userUid,
+                    name: name,
+                    email: email,
+                    mobile: mobile,
+                    image: imageUrl,
+                    bio: bio,
                 }
-                localStorage.setItem("user",JSON.stringify(userinfo))
+                localStorage.setItem('user', JSON.stringify(userinfo))
                 push('/chatlist')
             })
             .catch((error) => {
-                console.error("Error adding document: ", error);
-            });
+                console.error('Error adding document: ', error)
+            })
     }
 
     const onImageUpload = (event) => {
-        const file = event.target.files[0];
+        const file = event.target.files[0]
         if (file) {
-            setImageFile(file);
-            setProfileImage(URL.createObjectURL(file));
+            setImageFile(file)
+            setProfileImage(URL.createObjectURL(file))
         }
-    };
+    }
 
     return (
         <div className="h-screen w-screen bg-color-primary-300 dark:bg-color-surface-100 flex flex-col items-center justify-center">
             <div className="w-3/4 h-4/5 bg-color-primary-500 dark:bg-color-surface-300 rounded-xl flex flex-col items-center">
-                <h1 className="my-5 text-black dark:text-white text-7xl">Profile</h1>
+                <h1 className="my-5 text-black dark:text-white text-7xl">
+                    Profile
+                </h1>
                 <div className="w-40 h-40 rounded-full overflow-hidden flex items-end justify-end">
                     <img
-                        src={profileImage || 'https://img.freepik.com/premium-vector/man-character_665280-46970.jpg'}
+                        src={
+                            profileImage ||
+                            'https://img.freepik.com/premium-vector/man-character_665280-46970.jpg'
+                        }
                         alt="Profile"
                         className="w-full h-full object-cover"
                         onClick={() => {
                             if (fileInputRef.current) {
-                                fileInputRef.current.click();
+                                fileInputRef.current.click()
                             }
                         }}
                     />
-                    <div className='w-12 h-12 bg-color-primary-100 dark:bg-color-primary-100 absolute rounded-full flex items-center justify-center text-2xl cursor-pointer' onClick={() => {
-                        if (fileInputRef.current) {
-                            fileInputRef.current.click();
-                        }
-                    }}><BsPencilSquare /></div>
+                    <div
+                        className="w-12 h-12 bg-color-primary-100 dark:bg-color-primary-100 absolute rounded-full flex items-center justify-center text-2xl cursor-pointer"
+                        onClick={() => {
+                            if (fileInputRef.current) {
+                                fileInputRef.current.click()
+                            }
+                        }}
+                    >
+                        <BsPencilSquare />
+                    </div>
                 </div>
                 <input
                     type="file"
@@ -125,7 +134,9 @@ const Profile = () => {
                 />
                 <div className="my-4 max-w-[600px] w-1/2 space-y-2">
                     <div className="flex items-center">
-                        <span className="w-1/4 text-black dark:text-white">Name:</span>
+                        <span className="w-1/4 text-black dark:text-white">
+                            Name:
+                        </span>
                         <input
                             type="text"
                             value={name}
@@ -134,7 +145,9 @@ const Profile = () => {
                         />
                     </div>
                     <div className="flex items-center">
-                        <span className="w-1/4 text-black dark:text-white">Email:</span>
+                        <span className="w-1/4 text-black dark:text-white">
+                            Email:
+                        </span>
                         <input
                             type="text"
                             value={email}
@@ -143,7 +156,9 @@ const Profile = () => {
                         />
                     </div>
                     <div className="flex items-center">
-                        <span className="w-1/4 text-black dark:text-white">Mobile:</span>
+                        <span className="w-1/4 text-black dark:text-white">
+                            Mobile:
+                        </span>
                         <input
                             type="text"
                             value={mobile}
@@ -152,21 +167,27 @@ const Profile = () => {
                         />
                     </div>
                     <div className="flex items-center">
-                        <span className="w-1/4 text-black dark:text-white">Bio:</span>
+                        <span className="w-1/4 text-black dark:text-white">
+                            Bio:
+                        </span>
                         <textarea
                             value={bio}
                             onChange={(e) => setBio(e.target.value)}
                             className="w-3/4 p-2 border-b-[1px] outline-none text-black dark:text-white bg-transparent border-black dark:border-white"
                         />
                     </div>
-
                 </div>
                 <div className="flex items-center">
-                    <button onClick={handleSubmit} className='w-28 h-12 bg-color-primary-100 rounded-xl my-12 font-semibold'>Submit</button>
+                    <button
+                        onClick={handleSubmit}
+                        className="w-28 h-12 bg-color-primary-100 rounded-xl my-12 font-semibold"
+                    >
+                        Submit
+                    </button>
                 </div>
             </div>
         </div>
-    );
-};
+    )
+}
 
-export default Profile;
+export default Profile

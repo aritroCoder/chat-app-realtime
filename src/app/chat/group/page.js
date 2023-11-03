@@ -33,17 +33,13 @@ const ChatApp = () => {
     const [newMessage, setNewMessage] = useState('')
     const [user, setUser] = useState('')
     const [userName, setUserName] = useState('UserName')
-    const [userImage, setUserImage] = useState(
-        ''
-    )
+    const [userImage, setUserImage] = useState('')
     const [people, setPeople] = useState('')
     const [open, setOpen] = useState(false)
     const [openRemove, setOpenRemove] = useState(false)
     const [groupId, setGroupId] = useState('')
     const [groupName, setGroupName] = useState('')
-    const [groupImg, setGroupImg] = useState(
-        ''
-    )
+    const [groupImg, setGroupImg] = useState('')
     const [groupMembersId, setGroupMembersId] = useState([])
     const [groupMembers, setGroupMembers] = useState([])
     const [downloadTxt, setDownloadTxt] = useState([])
@@ -136,7 +132,7 @@ const ChatApp = () => {
         // Iterate through the messages array and find out the text strings and add them to a new array
         let textMessages = []
         const element = document.createElement('a')
-        messages.forEach(async(message) => {
+        messages.forEach(async (message) => {
             let senderName = ''
             const q = query(collection(db, 'users'))
             const querySnapshot = await getDocs(q)
@@ -168,7 +164,6 @@ const ChatApp = () => {
         document.body.appendChild(element) // Required for this to work in FireFox
         element.click()
     }, [downloadTxt])
-    
 
     // get current time
     function getCurrentTime() {
@@ -337,7 +332,7 @@ const ChatApp = () => {
             try {
                 const q = query(
                     collection(db, 'users'),
-                    where('__name__', '!=', user)
+                    where('__name__', '!=', user),
                 )
                 const querySnapshot = await getDocs(q)
                 let userList = []
@@ -354,8 +349,8 @@ const ChatApp = () => {
         if (user) {
             fetchUsers(user)
         }
-    }, [open,messages])
-    
+    }, [open, messages])
+
     const removeMember = async (memberId) => {
         console.log('memberId', memberId)
         if (confirm('Are you sure you want to remove this member?')) {
@@ -368,7 +363,6 @@ const ChatApp = () => {
             })
         }
     }
-
 
     const exitGroup = async () => {
         if (confirm('Are you sure you want to exit this group?')) {
@@ -385,15 +379,19 @@ const ChatApp = () => {
     return (
         <div className="flex flex-col h-screen overflow-y-hidden">
             {/* Top Bar */}
-            {groupMembers && <Chatbar
-                name={groupName}
-                image={groupImg}
-                groupMembers={groupMembers.map((member) => member.name).join(', ')}
-                downloadTxt={downloadTxtFile}
-                addMember={onOpenModal}
-                removeMember={onOpenRemoveModal}
-                exitGroup={exitGroup}
-            ></Chatbar>}
+            {groupMembers && (
+                <Chatbar
+                    name={groupName}
+                    image={groupImg}
+                    groupMembers={groupMembers
+                        .map((member) => member.name)
+                        .join(', ')}
+                    downloadTxt={downloadTxtFile}
+                    addMember={onOpenModal}
+                    removeMember={onOpenRemoveModal}
+                    exitGroup={exitGroup}
+                ></Chatbar>
+            )}
             {/* Chat area */}
             <div className="flex pb-[10rem] bg-color-primary-500 dark:bg-color-surface-200 flex-col h-screen">
                 <div
@@ -402,15 +400,16 @@ const ChatApp = () => {
                     id="scroll"
                 >
                     <div className="flex flex-1 flex-col space-y-4 h-[100%]">
-                        {people && messages.map((message, index) => (
-                            <Chatbubble
-                                key={index}
-                                message={message}
-                                index={index}
-                                user={user}
-                                people={people}
-                            ></Chatbubble>
-                        ))}
+                        {people &&
+                            messages.map((message, index) => (
+                                <Chatbubble
+                                    key={index}
+                                    message={message}
+                                    index={index}
+                                    user={user}
+                                    people={people}
+                                ></Chatbubble>
+                            ))}
                     </div>
                 </div>
                 <Chatinput
@@ -433,36 +432,48 @@ const ChatApp = () => {
                         Add participants to group
                     </h1>
                     {/* Map through the people array and create show item for each of them */}
-                    {people && people.map((person) => (
-                        <div
-                            key={person.id}
-                            className="flex justify-between overflow-auto items-center w-full px-4 py-2 mb-2 bg-color-surface-300 rounded-md"
-                        > 
-                            <div className="flex items-center">
-                                <img
-                                    className="w-8 h-8 rounded-full mr-2"
-                                    src={person.imageUrl !== '' ? person.imageUrl :'https://cdn-icons-png.flaticon.com/512/6596/6596121.png'}
-                                    alt=""
-                                />
-                                <p className="text-white">{person.name}</p>
-                            </div>
-                            <button
-                                className={`bg-color-primary-200 p-2 rounded-md  ${groupMembersId.includes(person.id) ? 'text-white bg-color-primary-400' :'text-white hover:bg-color-primary-300'}`}
-                                disabled={groupMembersId.includes(person.id)}
-                                onClick={() => {
-                                    if(groupMembersId.includes(person.id)) return
-                                    setGroupMembersId((prev) => [
-                                        ...prev,
-                                        person.id,
-                                    ])
-                                }}
+                    {people &&
+                        people.map((person) => (
+                            <div
+                                key={person.id}
+                                className="flex justify-between overflow-auto items-center w-full px-4 py-2 mb-2 bg-color-surface-300 rounded-md"
                             >
-                                {groupMembersId.includes(person.id)?'Added':'Add'}
-                            </button>
-                        </div>
-                    ))
-                    }
-                    
+                                <div className="flex items-center">
+                                    <img
+                                        className="w-8 h-8 rounded-full mr-2"
+                                        src={
+                                            person.imageUrl !== ''
+                                                ? person.imageUrl
+                                                : 'https://cdn-icons-png.flaticon.com/512/6596/6596121.png'
+                                        }
+                                        alt=""
+                                    />
+                                    <p className="text-white">{person.name}</p>
+                                </div>
+                                <button
+                                    className={`bg-color-primary-200 p-2 rounded-md  ${
+                                        groupMembersId.includes(person.id)
+                                            ? 'text-white bg-color-primary-400'
+                                            : 'text-white hover:bg-color-primary-300'
+                                    }`}
+                                    disabled={groupMembersId.includes(
+                                        person.id,
+                                    )}
+                                    onClick={() => {
+                                        if (groupMembersId.includes(person.id))
+                                            return
+                                        setGroupMembersId((prev) => [
+                                            ...prev,
+                                            person.id,
+                                        ])
+                                    }}
+                                >
+                                    {groupMembersId.includes(person.id)
+                                        ? 'Added'
+                                        : 'Add'}
+                                </button>
+                            </div>
+                        ))}
                 </div>
             </Modal>
             {/* Modal to remove participants from the group */}
@@ -479,29 +490,34 @@ const ChatApp = () => {
                         Add participants to group
                     </h1>
                     {/* Map through the people array and create show item for each of them */}
-                    {groupMembers && groupMembers.map((person) => (
-                        <div
-                            key={person.id}
-                            className="flex justify-between overflow-auto items-center w-full px-4 py-2 mb-2 bg-color-surface-300 rounded-md"
-                        >
-                            <div className="flex items-center">
-                                <img
-                                    className="w-8 h-8 rounded-full mr-2"
-                                    src={person.imageUrl !== '' ? person.imageUrl :'https://cdn-icons-png.flaticon.com/512/6596/6596121.png'}
-                                    alt=""
-                                />
-                                <p className="text-white">{person.name}</p>
-                            </div>
-                            <button
-                                className={`bg-color-primary-200 p-2 rounded-md  `}
-                                onClick={() => {removeMember(person.id)}}
+                    {groupMembers &&
+                        groupMembers.map((person) => (
+                            <div
+                                key={person.id}
+                                className="flex justify-between overflow-auto items-center w-full px-4 py-2 mb-2 bg-color-surface-300 rounded-md"
                             >
-                                Remove
-                            </button>
-                        </div>
-                    ))
-                    }
-                    
+                                <div className="flex items-center">
+                                    <img
+                                        className="w-8 h-8 rounded-full mr-2"
+                                        src={
+                                            person.imageUrl !== ''
+                                                ? person.imageUrl
+                                                : 'https://cdn-icons-png.flaticon.com/512/6596/6596121.png'
+                                        }
+                                        alt=""
+                                    />
+                                    <p className="text-white">{person.name}</p>
+                                </div>
+                                <button
+                                    className={`bg-color-primary-200 p-2 rounded-md  `}
+                                    onClick={() => {
+                                        removeMember(person.id)
+                                    }}
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                        ))}
                 </div>
             </Modal>
         </div>
