@@ -20,7 +20,7 @@
         "react-icons": "^4.11.0",
         "react-responsive-modal": "^6.4.2",
         "react-tooltip": "^5.22.0",
-        "simple-peer": "^9.11.1",
+        "simple-peer": "9.6.2",
         "socket.io-client": "^4.7.2",
         "supports-color": "^9.4.0",
         "utf-8-validate": "^6.0.3",
