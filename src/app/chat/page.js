@@ -15,7 +15,7 @@ import {
     getDocs,
 } from 'firebase/firestore'
 import { ref, getStorage, uploadBytes, getDownloadURL } from 'firebase/storage' // Storage module
-
+import { v1 as uuid } from 'uuid'
 import Chatbar from '../components/chatpage/Chatbar'
 import Chatbubble from '../components/chatpage/Chatbubble'
 import Chatinput from '../components/chatpage/Chatinput'
@@ -38,15 +38,19 @@ const ChatApp = () => {
     const [recieverImg, setRecieverImg] = useState(
         'https://images.ctfassets.net/hrltx12pl8hq/12wPNuS1sirO3hOes6l7Ds/9c69a51705b4a3421d65d6403ec815b1/non_cheesy_stock_photos_cover-edit.jpg',
     )
+    const [sockid, setSockid] = useState('')
     const [recieverLastSeen, setRecieverLastSeen] = useState('')
 
-    // connect user to socket, set user profile and reciever id
+    // connect user to socket, set user profile, user socket id, and reciever id
     useEffect(() => {
         socket.on('connect', () => {
             if (socket.recovered) {
                 console.log('Recovered connection')
             }
             setIsConnected(true)
+        })
+        socket.on('new-user', (id) => {
+            setSockid(id)
         })
 
         socket.on('disconnect', () => {
@@ -330,6 +334,12 @@ const ChatApp = () => {
         }
     }
 
+    const callHandler = () => {
+        // navigate to call page
+        const id = uuid()
+        router.push(`/call?id=${id}`)
+    }
+
     return (
         <div className="flex flex-col h-screen overflow-y-hidden">
             {/* Top Bar */}
@@ -339,6 +349,7 @@ const ChatApp = () => {
                 status={isConnected}
                 downloadTxt={downloadTxtFile}
                 lastSeen={recieverLastSeen}
+                callHandler={callHandler}
             ></Chatbar>
             {/* Chat area */}
             <div className="flex pb-[10rem] bg-color-primary-500 dark:bg-color-surface-200 flex-col h-screen">

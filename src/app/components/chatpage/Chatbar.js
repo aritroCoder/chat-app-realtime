@@ -6,7 +6,14 @@ import { AiFillFileText } from 'react-icons/ai'
 import 'react-tooltip/dist/react-tooltip.css'
 import { Tooltip } from 'react-tooltip'
 
-const Chatbar = ({ image, name, status, downloadTxt, lastSeen }) => {
+const Chatbar = ({
+    image,
+    name,
+    status,
+    downloadTxt,
+    lastSeen,
+    callHandler,
+}) => {
     return (
         <div className="bg-green-500 dark:bg-color-surface-100 p-4 flex justify-between items-center">
             <Tooltip id="call" />
@@ -47,6 +54,7 @@ const Chatbar = ({ image, name, status, downloadTxt, lastSeen }) => {
                     data-tooltip-id="video"
                     data-tooltip-content="Video Call"
                     className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md"
+                    onClick={() => callHandler()}
                 >
                     <BsFillCameraVideoFill />
                 </button>
