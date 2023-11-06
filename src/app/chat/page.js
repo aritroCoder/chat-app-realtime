@@ -15,7 +15,7 @@ import {
     getDocs,
 } from 'firebase/firestore'
 import { ref, getStorage, uploadBytes, getDownloadURL } from 'firebase/storage' // Storage module
-import { v1 as uuid } from 'uuid'
+
 import Chatbar from '../components/chatpage/Chatbar'
 import Chatbubble from '../components/chatpage/Chatbubble'
 import Chatinput from '../components/chatpage/Chatinput'
@@ -23,6 +23,7 @@ import Chatinput from '../components/chatpage/Chatinput'
 const ChatApp = () => {
     const router = useRouter()
     const storage = getStorage()
+    const myRef = useRef(null)
     const chatContainerRef = useRef(null)
     const searchParams = useSearchParams()
     const [isConnected, setIsConnected] = useState(false)
@@ -31,26 +32,28 @@ const ChatApp = () => {
     const [user, setUser] = useState('')
     const [userName, setUserName] = useState('UserName')
     const [userImage, setUserImage] = useState(
-        'https://images.ctfassets.net/hrltx12pl8hq/12wPNuS1sirO3hOes6l7Ds/9c69a51705b4a3421d65d6403ec815b1/non_cheesy_stock_photos_cover-edit.jpg',
+        'https://images.ctfassets.net/hrltx12pl8hq/12wPNuS1sirO3hOes6l7Ds/9c69a51705b4a3421d65d6403ec815b1/non_cheesy_stock_photos_cover-edit.jpg'
     )
     const [recieverId, setRecieverId] = useState('')
     const [recieverName, setRecieverName] = useState('')
     const [recieverImg, setRecieverImg] = useState(
-        'https://images.ctfassets.net/hrltx12pl8hq/12wPNuS1sirO3hOes6l7Ds/9c69a51705b4a3421d65d6403ec815b1/non_cheesy_stock_photos_cover-edit.jpg',
+        'https://images.ctfassets.net/hrltx12pl8hq/12wPNuS1sirO3hOes6l7Ds/9c69a51705b4a3421d65d6403ec815b1/non_cheesy_stock_photos_cover-edit.jpg'
     )
-    const [sockid, setSockid] = useState('')
     const [recieverLastSeen, setRecieverLastSeen] = useState('')
+    const [disappearingMessageTime, setDisappearingMessageTime] = useState(0)
 
-    // connect user to socket, set user profile, user socket id, and reciever id
+    function getTime() {
+        const now = new Date()
+        return String(now)
+    }
+
+    // connect user to socket, set user profile and reciever id
     useEffect(() => {
         socket.on('connect', () => {
             if (socket.recovered) {
                 console.log('Recovered connection')
             }
             setIsConnected(true)
-        })
-        socket.on('new-user', (id) => {
-            setSockid(id)
         })
 
         socket.on('disconnect', () => {
@@ -165,7 +168,7 @@ const ChatApp = () => {
         // Ensure the hours and minutes are displayed with leading zeros if needed
         const formattedTime = `${String(formattedHours).padStart(
             2,
-            '0',
+            '0'
         )}:${String(minutes).padStart(2, '0')}`
 
         return `${formattedTime} ${amOrPm}`
@@ -195,7 +198,7 @@ const ChatApp = () => {
 
                         // Ensure the hours and minutes are displayed with leading zeros if needed
                         const formattedTime = `${String(
-                            formattedHours,
+                            formattedHours
                         ).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
 
                         //   return `${formattedTime} ${amOrPm}`;
@@ -234,7 +237,7 @@ const ChatApp = () => {
         try {
             const q = query(
                 collection(db, 'users'),
-                where('__name__', '!=', user),
+                where('__name__', '!=', user)
             )
             const querySnapshot = await getDocs(q)
             querySnapshot.forEach((doc) => {
@@ -262,14 +265,14 @@ const ChatApp = () => {
                     message: newMessage,
                     sender: user,
                     recieverId,
-                    time: getCurrentTime(),
+                    time: getTime(),
                 },
             ])
             socket.emit('new-message', {
                 message: newMessage,
                 sender: user,
                 recieverId,
-                time: getCurrentTime(),
+                time: getTime(),
             })
             setNewMessage('')
         } else if (typeof newMessage !== 'string') {
@@ -309,7 +312,7 @@ const ChatApp = () => {
                                     },
                                     sender: user,
                                     recieverId,
-                                    time: getCurrentTime(),
+                                    time: getTime(),
                                 },
                             ])
                             socket.emit('new-message', {
@@ -319,14 +322,14 @@ const ChatApp = () => {
                                 },
                                 sender: user,
                                 recieverId,
-                                time: getCurrentTime(),
+                                time: getTime(),
                             })
                         })
                         .catch((error) => {
                             // Handle any errors while getting the download URL
                             console.error('Error getting download URL:', error)
                         })
-                },
+                }
             )
             console.log(newMessage)
 
@@ -334,14 +337,47 @@ const ChatApp = () => {
         }
     }
 
-    const callHandler = () => {
-        // navigate to call page
-        const id = uuid()
-        router.push(`/call?id=${id}`)
-    }
+    // Disappearing Message
+
+    useEffect(() => {
+        if (user && recieverId) {
+            const userDocRef = doc(db, 'disappearing', user + recieverId)
+            getDoc(userDocRef)
+                .then((docSnap) => {
+                    if (docSnap.exists()) {
+                        const userData = docSnap.data()
+                        setDoc(doc(db, 'disappearing', user + recieverId), {
+                            user: user,
+                            disappearingMessageTime: disappearingMessageTime,
+                        })
+                        setDoc(doc(db, 'disappearing', recieverId + user), {
+                            user: user,
+                            disappearingMessageTime: disappearingMessageTime,
+                        })
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error checking user document:', error)
+                })
+        }
+    }, [disappearingMessageTime])
+
+    useEffect(() => {
+        if (user && recieverId) {
+            console.log('enter', 'enter')
+            const userDocRef = doc(db, 'disappearing', user + recieverId)
+            getDoc(userDocRef).then((docSnap) => {
+                if (docSnap.exists()) {
+                    const userData = docSnap.data()
+                    //   console.log('userData', userData)
+                    setDisappearingMessageTime(userData.disappearingMessageTime)
+                }
+            })
+        }
+    }, [user, recieverId])
 
     return (
-        <div className="flex flex-col h-screen overflow-y-hidden">
+        <div className="flex flex-col h-screen overflow-y-hidden" ref={myRef}>
             {/* Top Bar */}
             <Chatbar
                 name={recieverName}
@@ -349,7 +385,9 @@ const ChatApp = () => {
                 status={isConnected}
                 downloadTxt={downloadTxtFile}
                 lastSeen={recieverLastSeen}
-                callHandler={callHandler}
+                myRef={myRef}
+                disappearingMessageTime={disappearingMessageTime}
+                setDisappearingMessageTime={setDisappearingMessageTime}
             ></Chatbar>
             {/* Chat area */}
             <div className="flex pb-[10rem] bg-color-primary-500 dark:bg-color-surface-200 flex-col h-screen">
@@ -365,6 +403,9 @@ const ChatApp = () => {
                                 message={message}
                                 index={index}
                                 user={user}
+                                disappearingMessageTime={
+                                    disappearingMessageTime
+                                }
                             ></Chatbubble>
                         ))}
                     </div>

@@ -26,3 +26,11 @@
     min-height: 700px;
     color: white;
 }
+
+.dissapearing-modal {
+    background: #2e382f !important;
+    max-width: 200px;
+    width: 100%;
+    min-height: 200px;
+    color: white;
+}
