@@ -1,5 +1,7 @@
 'use client'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { socket } from '../utils/socket'
 import dynamic from 'next/dynamic'
 import {
     MeetingProvider,
@@ -10,6 +12,7 @@ import {
 
 import { authToken, createMeeting } from '../utils/api'
 import ReactPlayer from 'react-player'
+
 
 function JoinScreen({ getMeetingAndToken }) {
     const [meetingId, setMeetingId] = useState(null)
@@ -177,9 +180,28 @@ function MeetingView(props) {
 }
 
 function App() {
+    const searchParams = useSearchParams()
     const [meetingId, setMeetingId] = useState(null)
+    useEffect(() => {
+        let createcall = searchParams.get('createcall')
+        if (createcall == 'TRUE') {
+            getMeetingAndToken(null)
+            console.log("Sahi hai")
+        }
+    }, [])
+    useEffect(() => {
+    //   console.log('meetingId', meetingId)
+    if(meetingId){
+            
+        socket.emit('call-user', {
+            to: searchParams.get('recieverid'),
+            offer: meetingId,
+        })
+    }
+    }, [meetingId])
+    
     // useEffect(() => {
-    //     console.log({
+        //     console.log({
     //         mod,
     //     })
     // }, [])

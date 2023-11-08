@@ -81,6 +81,12 @@ const ChatApp = () => {
         }
     }, [])
 
+    setInterval(() => {
+        socket.on('call-made', (data) => {
+            console.log('call-user', data)
+        })
+    }, 1000);
+
     // get messages from socket
     useEffect(() => {
         socket.on('message', (message) => {
@@ -96,6 +102,9 @@ const ChatApp = () => {
             }
             setMessages((messages) => messages.concat(messageList))
         })
+            socket.on('call-made', (data) => {
+                console.log('call-user', data)
+            })
         return () => {
             socket.off('message')
         }
@@ -376,6 +385,11 @@ const ChatApp = () => {
         }
     }, [user, recieverId])
 
+    // Create Meet
+    const createMeet = () => {
+        router.push('/video?createcall=TRUE&recieverid=' + recieverId);
+    }
+
     return (
         <div className="flex flex-col h-screen overflow-y-hidden" ref={myRef}>
             {/* Top Bar */}
@@ -388,6 +402,7 @@ const ChatApp = () => {
                 myRef={myRef}
                 disappearingMessageTime={disappearingMessageTime}
                 setDisappearingMessageTime={setDisappearingMessageTime}
+                createMeet={createMeet}
             ></Chatbar>
             {/* Chat area */}
             <div className="flex pb-[10rem] bg-color-primary-500 dark:bg-color-surface-200 flex-col h-screen">

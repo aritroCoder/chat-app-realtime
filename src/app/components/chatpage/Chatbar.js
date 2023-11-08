@@ -17,6 +17,7 @@ const Chatbar = ({
     myRef,
     disappearingMessageTime,
     setDisappearingMessageTime,
+    createMeet,
 }) => {
     const [open, setOpen] = useState(false)
     // const [disappearingMessageTime, setDisappearingMessageTime] = useState(0) // Default to 0 minutes
@@ -75,6 +76,7 @@ const Chatbar = ({
                     data-tooltip-id="video"
                     data-tooltip-content="Video Call"
                     className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md"
+                    onClick={createMeet}
                 >
                     <BsFillCameraVideoFill />
                 </button>
