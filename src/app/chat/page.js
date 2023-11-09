@@ -81,11 +81,17 @@ const ChatApp = () => {
         }
     }, [])
 
-    setInterval(() => {
-        socket.on('call-made', (data) => {
-            console.log('call-user', data)
+        useEffect(() => {
+            socket.on('call-made', (data) => {
+            // console.log('Reciever', data.to)
+            // console.log('MeetingID', data.meetingid)
+            // TODO Add a modal to accept or reject the call
+            if(user && data.to == user){
+                
+                router.push('/video?createcall=FALSE&recieverid=' + data.to + '&meetingid=' + data.meetingid)
+            }
         })
-    }, 1000);
+        }, [socket,user])
 
     // get messages from socket
     useEffect(() => {
@@ -102,9 +108,6 @@ const ChatApp = () => {
             }
             setMessages((messages) => messages.concat(messageList))
         })
-            socket.on('call-made', (data) => {
-                console.log('call-user', data)
-            })
         return () => {
             socket.off('message')
         }

@@ -19,31 +19,6 @@ function JoinScreen({ getMeetingAndToken }) {
     const onClick = async () => {
         await getMeetingAndToken(meetingId)
     }
-    return (
-        <div>
-            <input
-                type="text"
-                placeholder="Enter Meeting Id"
-                className="p-2 m-2 bg-zinc-50 rounded-e border-black border-2"
-                onChange={(e) => {
-                    setMeetingId(e.target.value)
-                }}
-            />
-            <button
-                className="p-2 m-2 bg-zinc-100 rounded-e border-black border-2"
-                onClick={onClick}
-            >
-                Join
-            </button>
-            {' or '}
-            <button
-                className="border-2 border-black p-2 m-2 bg-zinc-100"
-                onClick={onClick}
-            >
-                Create Meeting
-            </button>
-        </div>
-    )
 }
 
 function ParticipantView(props) {
@@ -168,12 +143,20 @@ function MeetingView(props) {
             ) : joined && joined == 'JOINING' ? (
                 <p>Joining the meeting...</p>
             ) : (
-                <button
-                    className="border-2 border-black p-2 m-2 bg-zinc-100"
-                    onClick={joinMeeting}
-                >
-                    Join
-                </button>
+                <div>
+                    <button
+                        className="border-2 border-black p-2 m-2 bg-zinc-100"
+                        onClick={joinMeeting}
+                    >
+                        Join
+                    </button>
+                    <button
+                        className="border-2 border-black p-2 m-2 bg-zinc-100"
+                        onClick={props.onMeetingLeave}
+                    >
+                        Go Back
+                    </button>
+                </div>
             )}
         </div>
     )
@@ -182,20 +165,24 @@ function MeetingView(props) {
 function App() {
     const searchParams = useSearchParams()
     const [meetingId, setMeetingId] = useState(null)
+    const Router = useRouter()
     useEffect(() => {
         let createcall = searchParams.get('createcall')
         if (createcall == 'TRUE') {
             getMeetingAndToken(null)
-            console.log("Sahi hai")
+        }
+        else if (createcall == 'FALSE') {
+            getMeetingAndToken(searchParams.get('meetingid'))
         }
     }, [])
+    
     useEffect(() => {
     //   console.log('meetingId', meetingId)
     if(meetingId){
             
         socket.emit('call-user', {
             to: searchParams.get('recieverid'),
-            offer: meetingId,
+            meetingid: meetingId,
         })
     }
     }, [meetingId])
@@ -216,6 +203,7 @@ function App() {
     //This will set Meeting Id to null when meeting is left or ended
     const onMeetingLeave = () => {
         setMeetingId(null)
+        Router.back()
     }
 
     return authToken && meetingId ? (
