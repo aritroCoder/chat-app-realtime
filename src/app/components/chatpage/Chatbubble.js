@@ -22,7 +22,7 @@ const Chatbubble = ({ index, message, user, disappearingMessageTime }) => {
         // Ensure the hours and minutes are displayed with leading zeros if needed
         const formattedTime = `${String(formattedHours).padStart(
             2,
-            '0'
+            '0',
         )}:${String(minutes).padStart(2, '0')}`
 
         return `${formattedTime} ${amOrPm}`
@@ -33,7 +33,7 @@ const Chatbubble = ({ index, message, user, disappearingMessageTime }) => {
         const currentTime = new Date()
         const messageTime = new Date(message.time)
         const timeDifference = (currentTime - messageTime) / (1000 * 60) // Convert to minutes
-        if(disappearingMessageTime === 0) return true
+        if (disappearingMessageTime === 0) return true
         return timeDifference < disappearingMessageTime
     }
 
@@ -94,7 +94,9 @@ const Chatbubble = ({ index, message, user, disappearingMessageTime }) => {
 
             {!message.message.type ? <span>{message.message}</span> : null}
 
-            <div className="text-sm text-end">{getCurrentTime(message.time)}</div>
+            <div className="text-sm text-end">
+                {getCurrentTime(message.time)}
+            </div>
         </div>
     )
 }

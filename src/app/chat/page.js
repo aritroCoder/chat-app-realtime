@@ -32,12 +32,12 @@ const ChatApp = () => {
     const [user, setUser] = useState('')
     const [userName, setUserName] = useState('UserName')
     const [userImage, setUserImage] = useState(
-        'https://images.ctfassets.net/hrltx12pl8hq/12wPNuS1sirO3hOes6l7Ds/9c69a51705b4a3421d65d6403ec815b1/non_cheesy_stock_photos_cover-edit.jpg'
+        'https://images.ctfassets.net/hrltx12pl8hq/12wPNuS1sirO3hOes6l7Ds/9c69a51705b4a3421d65d6403ec815b1/non_cheesy_stock_photos_cover-edit.jpg',
     )
     const [recieverId, setRecieverId] = useState('')
     const [recieverName, setRecieverName] = useState('')
     const [recieverImg, setRecieverImg] = useState(
-        'https://images.ctfassets.net/hrltx12pl8hq/12wPNuS1sirO3hOes6l7Ds/9c69a51705b4a3421d65d6403ec815b1/non_cheesy_stock_photos_cover-edit.jpg'
+        'https://images.ctfassets.net/hrltx12pl8hq/12wPNuS1sirO3hOes6l7Ds/9c69a51705b4a3421d65d6403ec815b1/non_cheesy_stock_photos_cover-edit.jpg',
     )
     const [recieverLastSeen, setRecieverLastSeen] = useState('')
     const [disappearingMessageTime, setDisappearingMessageTime] = useState(0)
@@ -81,17 +81,34 @@ const ChatApp = () => {
         }
     }, [])
 
-        useEffect(() => {
-            socket.on('call-made', (data) => {
-            // console.log('Reciever', data.to)
-            // console.log('MeetingID', data.meetingid)
-            // TODO Add a modal to accept or reject the call
-            if(user && data.to == user){
-                
-                router.push('/video?createcall=FALSE&recieverid=' + data.to + '&meetingid=' + data.meetingid + '&senderid=' + data.from)
+    useEffect(() => {
+        socket.on('call-made', (data) => {
+            if (user && data.to == user) {
+                router.push(
+                    '/video?createcall=FALSE&recieverid=' +
+                        data.to +
+                        '&meetingid=' +
+                        data.meetingid +
+                        '&senderid=' +
+                        data.from,
+                )
             }
         })
-        }, [socket,user])
+    }, [socket, user])
+    useEffect(() => {
+        socket.on('audio-call-made', (data) => {
+            if (user && data.to == user) {
+                router.push(
+                    '/audio?createcall=FALSE&recieverid=' +
+                        data.to +
+                        '&meetingid=' +
+                        data.meetingid +
+                        '&senderid=' +
+                        data.from,
+                )
+            }
+        })
+    }, [socket, user])
 
     // get messages from socket
     useEffect(() => {
@@ -180,7 +197,7 @@ const ChatApp = () => {
         // Ensure the hours and minutes are displayed with leading zeros if needed
         const formattedTime = `${String(formattedHours).padStart(
             2,
-            '0'
+            '0',
         )}:${String(minutes).padStart(2, '0')}`
 
         return `${formattedTime} ${amOrPm}`
@@ -210,7 +227,7 @@ const ChatApp = () => {
 
                         // Ensure the hours and minutes are displayed with leading zeros if needed
                         const formattedTime = `${String(
-                            formattedHours
+                            formattedHours,
                         ).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
 
                         //   return `${formattedTime} ${amOrPm}`;
@@ -249,7 +266,7 @@ const ChatApp = () => {
         try {
             const q = query(
                 collection(db, 'users'),
-                where('__name__', '!=', user)
+                where('__name__', '!=', user),
             )
             const querySnapshot = await getDocs(q)
             querySnapshot.forEach((doc) => {
@@ -341,7 +358,7 @@ const ChatApp = () => {
                             // Handle any errors while getting the download URL
                             console.error('Error getting download URL:', error)
                         })
-                }
+                },
             )
             console.log(newMessage)
 
@@ -390,7 +407,20 @@ const ChatApp = () => {
 
     // Create Meet
     const createMeet = () => {
-        router.push('/video?createcall=TRUE&recieverid=' + recieverId + '&senderid=' + user);
+        router.push(
+            '/video?createcall=TRUE&recieverid=' +
+                recieverId +
+                '&senderid=' +
+                user,
+        )
+    }
+    const createCall = () => {
+        router.push(
+            '/audio?createcall=TRUE&recieverid=' +
+                recieverId +
+                '&senderid=' +
+                user,
+        )
     }
 
     return (
@@ -406,6 +436,7 @@ const ChatApp = () => {
                 disappearingMessageTime={disappearingMessageTime}
                 setDisappearingMessageTime={setDisappearingMessageTime}
                 createMeet={createMeet}
+                createCall={createCall}
             ></Chatbar>
             {/* Chat area */}
             <div className="flex pb-[10rem] bg-color-primary-500 dark:bg-color-surface-200 flex-col h-screen">

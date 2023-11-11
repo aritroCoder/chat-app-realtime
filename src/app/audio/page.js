@@ -12,14 +12,7 @@ import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../utils/firebase'
 
 import { authToken, createMeeting } from '../utils/api'
-import ReactPlayer from 'react-player'
-import { BiCamera, BiCameraOff } from 'react-icons/bi'
-import {
-    BsMic,
-    BsMicMute,
-    BsFillMicFill,
-    BsFillCameraVideoFill,
-} from 'react-icons/bs'
+import { BsMic, BsMicMute, BsFillMicFill } from 'react-icons/bs'
 import { PiSignOutBold } from 'react-icons/pi'
 
 function JoinScreen({ getMeetingAndToken }) {
@@ -33,14 +26,6 @@ function ParticipantView(props) {
     const micRef = useRef(null)
     const { webcamStream, micStream, webcamOn, micOn, isLocal, displayName } =
         useParticipant(props.participantId)
-
-    const videoStream = useMemo(() => {
-        if (webcamOn && webcamStream) {
-            const mediaStream = new MediaStream()
-            mediaStream.addTrack(webcamStream.track)
-            return mediaStream
-        }
-    }, [webcamStream, webcamOn])
 
     useEffect(() => {
         if (micRef.current) {
@@ -63,43 +48,27 @@ function ParticipantView(props) {
     return (
         <div className="w-[42%] min-w-[400px] m-5">
             <p className="text-black dark:text-white text-xl inline-flex">
-                Participant: {displayName} |
-                {webcamOn ? <BiCamera size={25} /> : <BiCameraOff size={25} />}{' '}
-                |{micOn ? <BsMic size={25} /> : <BsMicMute size={25} />}
+                Participant: {displayName}|
+                {micOn ? <BsMic size={25} /> : <BsMicMute size={25} />}
             </p>
-            {!webcamOn && (
-                <div className="w-[100%] h-[94%] mt-[10px] bg-black flex items-center justify-center">
-                    <p className="text-white text-9xl">
-                        {displayName.charAt(0)}
-                    </p>
-                </div>
-            )}
+
+            <div className="w-[100%] h-[94%] mt-[10px] bg-black flex items-center justify-center">
+                <p className="text-white text-9xl">
+                    <img
+                        className="w-[100%] h-[100%] rounded-full"
+                        src={props.recieverImg}
+                        alt=""
+                    />
+                </p>
+            </div>
+
             <audio ref={micRef} autoPlay playsInline muted={isLocal} />
-            {webcamOn && (
-                <ReactPlayer
-                    //
-                    playsinline // very very imp prop
-                    pip={false}
-                    light={false}
-                    controls={false}
-                    muted={true}
-                    playing={true}
-                    //
-                    url={videoStream}
-                    //
-                    height={'100%'}
-                    width={'100%'}
-                    onError={(err) => {
-                        console.log(err, 'participant video error')
-                    }}
-                />
-            )}
         </div>
     )
 }
 
 function Controls() {
-    const { leave, toggleMic, toggleWebcam } = useMeeting()
+    const { leave, toggleMic } = useMeeting()
     return (
         <div className="flex absolute bottom-0">
             <button
@@ -113,12 +82,6 @@ function Controls() {
                 onClick={() => toggleMic()}
             >
                 <BsFillMicFill size={25} />
-            </button>
-            <button
-                className="w-20 h-20 flex items-center justify-center rounded-full bg-red-500 text-gray-100 font-bold p-2 m-2"
-                onClick={() => toggleWebcam()}
-            >
-                <BsFillCameraVideoFill size={25} />
             </button>
         </div>
     )
@@ -146,7 +109,7 @@ function MeetingView(props) {
     return (
         <div className="w-full h-screen bg-color-primary-200 dark:bg-color-surface-100 flex content-center items-center justify-center flex-col">
             <h3 className="my-8 text-5xl text-black dark:text-white">
-                Video Call
+                Voice Call
             </h3>
             {joined && joined == 'JOINED' ? (
                 <>
@@ -155,6 +118,7 @@ function MeetingView(props) {
                             <ParticipantView
                                 participantId={participantId}
                                 key={participantId}
+                                recieverImg={props.recieverImg}
                             />
                         ))}
                     </div>
@@ -162,7 +126,7 @@ function MeetingView(props) {
                 </>
             ) : joined && joined == 'JOINING' ? (
                 <p className="text-black dark:text-white">
-                    Joining the meeting...
+                    Joining the call...
                 </p>
             ) : (
                 <>
@@ -210,8 +174,9 @@ function App() {
     }, [])
 
     useEffect(() => {
+        //   console.log('meetingId', meetingId)
         if (meetingId) {
-            socket.emit('call-user', {
+            socket.emit('audio-call-user', {
                 from: searchParams.get('senderid'),
                 to: searchParams.get('recieverid'),
                 meetingid: meetingId,
@@ -247,6 +212,7 @@ function App() {
                     }
                 })
             }
+            // console.log(recieverName)
         }
     }, [meetingId])
 
@@ -263,12 +229,12 @@ function App() {
         Router.back()
     }
 
-    return authToken && meetingId && recieverName ? (
+    return authToken && meetingId && recieverName && recieverImg ? (
         <MeetingProvider
             config={{
                 meetingId,
                 micEnabled: true,
-                webcamEnabled: true,
+                webcamEnabled: false,
                 name: recieverName,
             }}
             token={authToken}
