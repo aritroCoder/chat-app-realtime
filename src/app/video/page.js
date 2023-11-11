@@ -3,15 +3,37 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { socket } from '../utils/socket'
 import dynamic from 'next/dynamic'
+import { MdCall, MdCallEnd } from 'react-icons/md'
 import {
     MeetingProvider,
     MeetingConsumer,
     useMeeting,
     useParticipant,
 } from '@videosdk.live/react-sdk'
+import {
+    collection,
+    query,
+    where,
+    doc,
+    setDoc,
+    addDoc,
+    getDoc,
+    getDocs,
+} from 'firebase/firestore'
+import { db } from '../utils/firebase'
 
 import { authToken, createMeeting } from '../utils/api'
 import ReactPlayer from 'react-player'
+import { BiCamera, BiCameraOff } from 'react-icons/bi'
+import {
+    BsMic,
+    BsMicMute,
+    BsFillMicFill,
+    BsFillMicOffFill,
+    BsFillCameraVideoFill,
+    BsFillCameraVideoOffFill,
+} from 'react-icons/bs'
+import {PiSignOutBold} from 'react-icons/pi'
 
 
 function JoinScreen({ getMeetingAndToken }) {
@@ -53,11 +75,21 @@ function ParticipantView(props) {
     }, [micStream, micOn])
 
     return (
-        <div>
-            <p>
-                Participant: {displayName} | Webcam: {webcamOn ? 'ON' : 'OFF'} |
-                Mic: {micOn ? 'ON' : 'OFF'}
+        <div className="w-[42%] min-w-[400px] m-5">
+            <p className="text-black dark:text-white text-xl inline-flex">
+                Participant: {displayName} | 
+                {webcamOn ? <BiCamera size={25} /> : <BiCameraOff size={25} />}{' '}
+                |
+                {micOn ? <BsMic size={25} /> : <BsMicMute size={25} />}
             </p>
+            {!webcamOn && (
+                <div className="w-[100%] h-[94%] mt-[10px] bg-black flex items-center justify-center">
+                    <p className="text-white text-9xl">
+                        {displayName.charAt(0)}
+                    </p>
+                </div>
+            )
+            }
             <audio ref={micRef} autoPlay playsInline muted={isLocal} />
             {webcamOn && (
                 <ReactPlayer
@@ -71,8 +103,8 @@ function ParticipantView(props) {
                     //
                     url={videoStream}
                     //
-                    height={'300px'}
-                    width={'300px'}
+                    height={'100%'}
+                    width={'100%'}
                     onError={(err) => {
                         console.log(err, 'participant video error')
                     }}
@@ -85,24 +117,24 @@ function ParticipantView(props) {
 function Controls() {
     const { leave, toggleMic, toggleWebcam } = useMeeting()
     return (
-        <div>
+        <div className='flex absolute bottom-0'>
             <button
-                className="border-2 border-black p-2 m-2 bg-zinc-100"
+                className="w-20 h-20 flex items-center justify-center rounded-full bg-red-500 text-gray-100 font-bold p-2 m-2"
                 onClick={() => leave()}
             >
-                Leave
+                <PiSignOutBold size={25} />
             </button>
             <button
-                className="border-2 border-black p-2 m-2 bg-zinc-100"
+                className="w-20 h-20 flex items-center justify-center rounded-full bg-red-500 text-gray-100 font-bold p-2 m-2"
                 onClick={() => toggleMic()}
             >
-                toggleMic
+                <BsFillMicFill size={25} />
             </button>
             <button
-                className="border-2 border-black p-2 m-2 bg-zinc-100"
+                className="w-20 h-20 flex items-center justify-center rounded-full bg-red-500 text-gray-100 font-bold p-2 m-2"
                 onClick={() => toggleWebcam()}
             >
-                toggleWebcam
+                <BsFillCameraVideoFill size={25} />
             </button>
         </div>
     )
@@ -128,35 +160,51 @@ function MeetingView(props) {
     }
 
     return (
-        <div className="container">
-            <h3>Meeting Id: {props.meetingId}</h3>
+        <div className="w-full h-screen bg-color-primary-200 dark:bg-color-surface-100 flex content-center items-center justify-center flex-col">
+            <h3 className="my-8 text-5xl text-black dark:text-white">
+                Video Call
+            </h3>
             {joined && joined == 'JOINED' ? (
-                <div>
-                    <Controls />
-                    {[...participants.keys()].map((participantId) => (
-                        <ParticipantView
+                <>
+                    <div className='flex flex-wrap justify-evenly'>
+                        {[...participants.keys()].map((participantId) => (
+                            <ParticipantView
                             participantId={participantId}
                             key={participantId}
-                        />
-                    ))}
-                </div>
+                            />
+                        ))}
+                    </div>
+                    <Controls />
+                </>
             ) : joined && joined == 'JOINING' ? (
-                <p>Joining the meeting...</p>
+                <p className="text-black dark:text-white">
+                    Joining the meeting...
+                </p>
             ) : (
-                <div>
-                    <button
-                        className="border-2 border-black p-2 m-2 bg-zinc-100"
-                        onClick={joinMeeting}
-                    >
-                        Join
-                    </button>
-                    <button
-                        className="border-2 border-black p-2 m-2 bg-zinc-100"
-                        onClick={props.onMeetingLeave}
-                    >
-                        Go Back
-                    </button>
-                </div>
+                <>
+                    <div className="w-64 h-64 rounded-full border-green-500 border-4 my-5 flex items-center justify-center">
+                        <img
+                            className="w-60 h-60 rounded-full"
+                            src={props.recieverImg}
+                            alt=""
+                        />
+                    </div>
+                    <div className="flex gap-16">
+                        <button
+                            className="rounded-full w-20 h-20 p-2 bg-green-500 text-gray-100 flex items-center justify-center"
+                            onClick={joinMeeting}
+                        >
+                            {/* Join */}
+                            <MdCall size={50} />
+                        </button>
+                        <button
+                            className="rounded-full w-20 h-20 p-2 bg-red-500 text-gray-100 flex items-center justify-center"
+                            onClick={props.onMeetingLeave}
+                        >
+                            <MdCallEnd size={50} />
+                        </button>
+                    </div>
+                </>
             )}
         </div>
     )
@@ -165,6 +213,8 @@ function MeetingView(props) {
 function App() {
     const searchParams = useSearchParams()
     const [meetingId, setMeetingId] = useState(null)
+    const [recieverName, setRecieverName] = useState(null)
+    const [recieverImg, setRecieverImg] = useState(null)
     const Router = useRouter()
     useEffect(() => {
         let createcall = searchParams.get('createcall')
@@ -181,9 +231,36 @@ function App() {
     if(meetingId){
             
         socket.emit('call-user', {
+            from: searchParams.get('senderid'),
             to: searchParams.get('recieverid'),
             meetingid: meetingId,
         })
+        let createcall = searchParams.get('createcall')
+        if(createcall == 'TRUE'){
+        // Get the reciever's name from the firestore
+        const userDocRef = doc(db, 'users', searchParams.get('senderid'))
+        getDoc(userDocRef).then((docSnap) => {
+            if (docSnap.exists()) {
+                const userData = docSnap.data()
+                console.log('userData', userData)
+                setRecieverName(userData.name)
+                setRecieverImg(userData.imageUrl)
+            }
+        })
+    }
+    else{
+        const userDocRef = doc(db, 'users', searchParams.get('recieverid'))
+        getDoc(userDocRef).then((docSnap) => {
+            if (docSnap.exists()) {
+                const userData = docSnap.data()
+                console.log('userData', userData)
+                setRecieverName(userData.name)
+                setRecieverImg(userData.imageUrl)
+            }
+        })
+    }
+        // console.log(recieverName)
+
     }
     }, [meetingId])
     
@@ -206,19 +283,20 @@ function App() {
         Router.back()
     }
 
-    return authToken && meetingId ? (
+    return authToken && meetingId && recieverName ? (
         <MeetingProvider
             config={{
                 meetingId,
                 micEnabled: true,
                 webcamEnabled: true,
-                name: 'C.V. Raman',
+                name: recieverName,
             }}
             token={authToken}
         >
             <MeetingView
                 meetingId={meetingId}
                 onMeetingLeave={onMeetingLeave}
+                recieverImg={recieverImg}
             />
         </MeetingProvider>
     ) : (

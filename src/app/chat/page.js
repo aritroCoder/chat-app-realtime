@@ -88,7 +88,7 @@ const ChatApp = () => {
             // TODO Add a modal to accept or reject the call
             if(user && data.to == user){
                 
-                router.push('/video?createcall=FALSE&recieverid=' + data.to + '&meetingid=' + data.meetingid)
+                router.push('/video?createcall=FALSE&recieverid=' + data.to + '&meetingid=' + data.meetingid + '&senderid=' + data.from)
             }
         })
         }, [socket,user])
@@ -390,7 +390,7 @@ const ChatApp = () => {
 
     // Create Meet
     const createMeet = () => {
-        router.push('/video?createcall=TRUE&recieverid=' + recieverId);
+        router.push('/video?createcall=TRUE&recieverid=' + recieverId + '&senderid=' + user);
     }
 
     return (
