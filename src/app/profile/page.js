@@ -147,9 +147,6 @@ const Profile = () => {
     // }
 
     // }, [bg])
-    
-
-
 
     return (
         <div className="h-screen w-screen bg-color-primary-300 dark:bg-color-surface-100 flex flex-col items-center justify-center">

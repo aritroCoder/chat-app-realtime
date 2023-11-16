@@ -144,19 +144,19 @@ const ChatApp = () => {
     // get reciever name
     useEffect(() => {
         if (user != '') {
-        fetchUsers()
-        // Get the user details from firestore
-        const userDocRef = doc(db, 'users', user)
-        getDoc(userDocRef)
-            .then((docSnap) => {
-                if (docSnap.exists()) {
-                    const userData = docSnap.data()
-                    setBg(userData.bgUrl)
-                }
-            })
-            .catch((error) => {
-                console.error('Error checking user document:', error)
-            })
+            fetchUsers()
+            // Get the user details from firestore
+            const userDocRef = doc(db, 'users', user)
+            getDoc(userDocRef)
+                .then((docSnap) => {
+                    if (docSnap.exists()) {
+                        const userData = docSnap.data()
+                        setBg(userData.bgUrl)
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error checking user document:', error)
+                })
         }
     }, [user])
 
