@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation'
 
 const Profile = () => {
     const fileInputRef = useRef(null)
+    const bgInputRef = useRef(null)
     const [profileImage, setProfileImage] = useState(null)
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
@@ -17,6 +18,7 @@ const Profile = () => {
     const [imageFile, setImageFile] = useState('')
     const [userUid, setUserUid] = useState('')
     const [docRef, setDocRef] = useState('')
+    const [bg, setBg] = useState('')
     const { push } = useRouter()
 
     useEffect(() => {
@@ -36,6 +38,7 @@ const Profile = () => {
                         setMobile(userData.mobile || '')
                         setProfileImage(userData.imageUrl || '')
                         setBio(userData.bio || '')
+                        setBg(userData.bgUrl || '')
                     } else {
                         setName(user.displayName)
                         setEmail(user.email)
@@ -94,9 +97,63 @@ const Profile = () => {
         }
     }
 
+    const onBgUpload = (event) => {
+        const file = event.target.files[0]
+        if (file) {
+            setBg(URL.createObjectURL(file))
+        }
+        const uploadBg = async () => {
+            const storageRef = ref(storage, `bgImages/${userUid}`)
+            await uploadBytes(storageRef, bgInputRef.current.files[0])
+            const bgUrl = await getDownloadURL(storageRef)
+            await setDoc(docRef, {
+                name,
+                mobile,
+                email,
+                profileImage,
+                bio,
+                bgUrl,
+            })
+                .then(() => {
+                    console.log('Document added successfully!')
+                })
+                .catch((error) => {
+                    console.error('Error adding document: ', error)
+                })
+        }
+        if (bgInputRef.current) {
+            uploadBg()
+        }
+    }
+
+    // useEffect(() => {
+    // //   Save the bg image to the google storage and get the url and save it to the firestore
+    // const uploadBg = async () => {
+    //     const storageRef = ref(storage, `bgImages/${userUid}`)
+    //     await uploadBytes(storageRef, bgInputRef.current.files[0])
+    //     const bgUrl = await getDownloadURL(storageRef)
+    //     await setDoc(docRef, {
+    //         bgUrl,
+    //     })
+    //         .then(() => {
+    //             console.log('Document added successfully!')
+    //         })
+    //         .catch((error) => {
+    //             console.error('Error adding document: ', error)
+    //         })
+    // }
+    // if (bgInputRef.current) {
+    //     uploadBg()
+    // }
+
+    // }, [bg])
+    
+
+
+
     return (
         <div className="h-screen w-screen bg-color-primary-300 dark:bg-color-surface-100 flex flex-col items-center justify-center">
-            <div className="w-3/4 h-4/5 bg-color-primary-500 dark:bg-color-surface-300 rounded-xl flex flex-col items-center">
+            <div className="w-3/4 h-[90%] bg-color-primary-500 dark:bg-color-surface-300 rounded-xl flex flex-col items-center">
                 <h1 className="my-5 text-black dark:text-white text-7xl">
                     Profile
                 </h1>
@@ -184,6 +241,43 @@ const Profile = () => {
                     >
                         Submit
                     </button>
+                </div>
+                <h3 className="text-3xl text-black dark:text-white">
+                    Theme Setting
+                </h3>
+                <div className="flex items-center justify-center gap-52">
+                    <h3 className="text-xl text-black dark:text-white">
+                        Choose the image for chat's walpaper
+                    </h3>
+                    <div className="flex items-center justify-center gap-4">
+                        <button
+                            className="w-28 h-12 bg-color-primary-100 rounded-xl my-12 font-semibold"
+                            onClick={() => {
+                                if (bgInputRef.current) {
+                                    bgInputRef.current.click()
+                                }
+                            }}
+                        >
+                            Upload
+                        </button>
+                    </div>
+                    <img
+                        src={bg}
+                        alt="Profile"
+                        className="h-40 w-auto object-cover my-3"
+                        onClick={() => {
+                            if (fileInputRef.current) {
+                                fileInputRef.current.click()
+                            }
+                        }}
+                    />
+                    <input
+                        type="file"
+                        ref={bgInputRef}
+                        accept="image/*"
+                        onChange={onBgUpload}
+                        style={{ display: 'none' }}
+                    />
                 </div>
             </div>
         </div>

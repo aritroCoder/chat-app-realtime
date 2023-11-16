@@ -31,6 +31,7 @@ const ChatApp = () => {
     const [newMessage, setNewMessage] = useState('')
     const [user, setUser] = useState('')
     const [userName, setUserName] = useState('UserName')
+    const [bg, setBg] = useState('')
     const [userImage, setUserImage] = useState(
         'https://images.ctfassets.net/hrltx12pl8hq/12wPNuS1sirO3hOes6l7Ds/9c69a51705b4a3421d65d6403ec815b1/non_cheesy_stock_photos_cover-edit.jpg',
     )
@@ -142,7 +143,21 @@ const ChatApp = () => {
 
     // get reciever name
     useEffect(() => {
-        if (user != '') fetchUsers()
+        if (user != '') {
+        fetchUsers()
+        // Get the user details from firestore
+        const userDocRef = doc(db, 'users', user)
+        getDoc(userDocRef)
+            .then((docSnap) => {
+                if (docSnap.exists()) {
+                    const userData = docSnap.data()
+                    setBg(userData.bgUrl)
+                }
+            })
+            .catch((error) => {
+                console.error('Error checking user document:', error)
+            })
+        }
     }, [user])
 
     // get previous messages from firestore and set them in messages array
@@ -423,6 +438,11 @@ const ChatApp = () => {
         )
     }
 
+    const dynamicStyles = {
+        backgroundImage: 'url(' + bg + ')',
+        backgroundSize: 'contain',
+    }
+
     return (
         <div className="flex flex-col h-screen overflow-y-hidden" ref={myRef}>
             {/* Top Bar */}
@@ -443,6 +463,7 @@ const ChatApp = () => {
                 <div
                     ref={chatContainerRef}
                     className="flex-1 p-4 overflow-y-auto"
+                    style={dynamicStyles}
                     id="scroll"
                 >
                     <div className="flex flex-1 flex-col space-y-4 h-[100%]">
