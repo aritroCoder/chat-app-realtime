@@ -22,8 +22,8 @@ import {
 } from 'react-icons/bs'
 import { PiSignOutBold } from 'react-icons/pi'
 
-function JoinScreen({ getMeetingAndToken }) {
-    const [meetingId, setMeetingId] = useState(null)
+function JoinScreen({ getMeetingAndToken, meetingid = null }) {
+    const [meetingId, setMeetingId] = useState(meetingid)
     const onClick = async () => {
         await getMeetingAndToken(meetingId)
     }
@@ -207,10 +207,13 @@ function App() {
         } else if (createcall == 'FALSE') {
             getMeetingAndToken(searchParams.get('meetingid'))
         }
+        if (searchParams.get('meetingid')) {
+            setMeetingId(searchParams.get('meetingid'))
+        }
     }, [])
 
     useEffect(() => {
-        if (meetingId) {
+        if (meetingId && !searchParams.get('group')) {
             socket.emit('call-user', {
                 from: searchParams.get('senderid'),
                 to: searchParams.get('recieverid'),
@@ -263,22 +266,68 @@ function App() {
         Router.back()
     }
 
-    return authToken && meetingId && recieverName ? (
-        <MeetingProvider
-            config={{
-                meetingId,
-                micEnabled: true,
-                webcamEnabled: true,
-                name: recieverName,
-            }}
-            token={authToken}
-        >
-            <MeetingView
-                meetingId={meetingId}
-                onMeetingLeave={onMeetingLeave}
-                recieverImg={recieverImg}
-            />
-        </MeetingProvider>
+    if (searchParams.get('meetingid')) {
+        return authToken && meetingId ? (
+            <>
+                <MeetingProvider
+                    config={{
+                        meetingId,
+                        micEnabled: true,
+                        webcamEnabled: true,
+                        name: recieverName,
+                    }}
+                    token={authToken}
+                >
+                    <MeetingView
+                        meetingId={meetingId}
+                        onMeetingLeave={onMeetingLeave}
+                        recieverImg={recieverImg}
+                    />
+                </MeetingProvider>
+                {/* show call id */}
+                <div>
+                    {' '}
+                    Call Id: {meetingId}, url:
+                    http://localhost:3000/video?group=TRUE&&meetingid=
+                    {meetingId}{' '}
+                </div>
+            </>
+        ) : (
+            <>
+                <JoinScreen
+                    getMeetingAndToken={getMeetingAndToken}
+                    meetingid={searchParams.get('meetingid')}
+                />
+            </>
+        )
+    }
+
+    return authToken &&
+        meetingId &&
+        (recieverName || searchParams.get('group')) ? (
+        <>
+            <MeetingProvider
+                config={{
+                    meetingId,
+                    micEnabled: true,
+                    webcamEnabled: true,
+                    name: recieverName,
+                }}
+                token={authToken}
+            >
+                <MeetingView
+                    meetingId={meetingId}
+                    onMeetingLeave={onMeetingLeave}
+                    recieverImg={recieverImg}
+                />
+            </MeetingProvider>
+            {/* show call id */}
+            <div>
+                {' '}
+                Call Id: {meetingId}, url:
+                http://localhost:3000/video?group=TRUE&&meetingid={meetingId}{' '}
+            </div>
+        </>
     ) : (
         <>
             <JoinScreen getMeetingAndToken={getMeetingAndToken} />

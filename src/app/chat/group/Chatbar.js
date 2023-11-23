@@ -18,6 +18,7 @@ const Chatbar = ({
     addMember,
     removeMember,
     exitGroup,
+    videoCall,
 }) => {
     return (
         <div className="bg-green-500 dark:bg-color-surface-100 p-4 flex justify-between items-center">
@@ -87,6 +88,7 @@ const Chatbar = ({
                     data-tooltip-id="video-group"
                     data-tooltip-content="Video Call"
                     className="ml-2 px-4 py-2 bg-transparent text-gray-200 text-2xl rounded-md"
+                    onClick={videoCall}
                 >
                     <BsFillCameraVideoFill />
                 </button>

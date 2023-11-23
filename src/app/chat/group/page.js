@@ -376,6 +376,10 @@ const ChatApp = () => {
         }
     }
 
+    const videoCall = async () => {
+        router.push('/video?createcall=TRUE&&group=TRUE')
+    }
+
     return (
         <div className="flex flex-col h-screen overflow-y-hidden">
             {/* Top Bar */}
@@ -390,6 +394,7 @@ const ChatApp = () => {
                     addMember={onOpenModal}
                     removeMember={onOpenRemoveModal}
                     exitGroup={exitGroup}
+                    videoCall={videoCall}
                 ></Chatbar>
             )}
             {/* Chat area */}
