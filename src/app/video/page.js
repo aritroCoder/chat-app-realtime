@@ -21,6 +21,12 @@ import {
     BsFillCameraVideoFill,
 } from 'react-icons/bs'
 import { PiSignOutBold } from 'react-icons/pi'
+import { onAuthStateChanged } from 'firebase/auth'
+import { auth, storage } from '../utils/firebase'
+import { FaCopy } from 'react-icons/fa'
+// import { ToastContainer, toast } from 'react-toastify'
+
+// import 'react-toastify/dist/ReactToastify.css'
 
 function JoinScreen({ getMeetingAndToken, meetingid = null }) {
     const [meetingId, setMeetingId] = useState(meetingid)
@@ -148,6 +154,26 @@ function MeetingView(props) {
             <h3 className="my-8 text-5xl text-black dark:text-white">
                 Video Call
             </h3>
+            {/* {console.log('props.group', props)} */}
+            {props.isGroup && (
+                <div className="text-black dark:text-white text-xl">
+                    {' '}
+                    Meeting Id:
+                    {props.meetingId}{' '}
+                    {/* FaCopy button to copy the URL to the clipboard on click */}
+                    <button
+                        className="p-2 bg-color-surface-300 dark:bg-color-primary-200 rounded-lg text-white dark:text-amber-950"
+                        onClick={() => {
+                            navigator.clipboard.writeText(
+                                `http://localhost:3000/video?group=TRUE&&meetingid=${props.meetingId}`,
+                            )
+                        }}
+                    >
+                        Copy Link{' '}
+                        <FaCopy className="cursor-pointer inline-block" />
+                    </button>
+                </div>
+            )}
             {joined && joined == 'JOINED' ? (
                 <>
                     <div className="flex flex-wrap justify-evenly">
@@ -199,7 +225,9 @@ function App() {
     const [meetingId, setMeetingId] = useState(null)
     const [recieverName, setRecieverName] = useState(null)
     const [recieverImg, setRecieverImg] = useState(null)
+    const [docRef, setDocRef] = useState('')
     const Router = useRouter()
+    const { push } = useRouter()
     useEffect(() => {
         let createcall = searchParams.get('createcall')
         if (createcall == 'TRUE') {
@@ -209,6 +237,55 @@ function App() {
         }
         if (searchParams.get('meetingid')) {
             setMeetingId(searchParams.get('meetingid'))
+            // Set the reciever's name from the firebase authentication
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    try {
+                        // Retrieve user data from Firestore based on the user's UID
+                        // setUserUid(user.uid)
+                        const userDocRef = doc(db, 'users', user.uid)
+                        setDocRef(userDocRef)
+                        const userDocSnapshot = await getDoc(userDocRef)
+
+                        if (userDocSnapshot.exists()) {
+                            const userData = userDocSnapshot.data()
+                            console.log('userData', userData)
+                            setRecieverName(userData.name || '')
+                            setRecieverImg(userData.imageUrl || '')
+                        }
+                    } catch (error) {
+                        console.error('Error fetching user data:', error)
+                    }
+                } else {
+                    alert('Please login to continue')
+                    push('/')
+                }
+            })
+        }
+        if (searchParams.get('group')) {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    try {
+                        // Retrieve user data from Firestore based on the user's UID
+                        // setUserUid(user.uid)
+                        const userDocRef = doc(db, 'users', user.uid)
+                        setDocRef(userDocRef)
+                        const userDocSnapshot = await getDoc(userDocRef)
+
+                        if (userDocSnapshot.exists()) {
+                            const userData = userDocSnapshot.data()
+                            console.log('userData', userData)
+                            setRecieverName(userData.name || '')
+                            setRecieverImg(userData.imageUrl || '')
+                        }
+                    } catch (error) {
+                        console.error('Error fetching user data:', error)
+                    }
+                } else {
+                    alert('Please login to continue')
+                    push('/')
+                }
+            })
         }
     }, [])
 
@@ -265,6 +342,10 @@ function App() {
         setMeetingId(null)
         Router.back()
     }
+    const onMeetingLeaveGroup = () => {
+        setMeetingId(null)
+        window.close()
+    }
 
     if (searchParams.get('meetingid')) {
         return authToken && meetingId ? (
@@ -282,15 +363,16 @@ function App() {
                         meetingId={meetingId}
                         onMeetingLeave={onMeetingLeave}
                         recieverImg={recieverImg}
+                        isGroup={searchParams.get('group') ? true : false}
                     />
                 </MeetingProvider>
                 {/* show call id */}
-                <div>
+                {/* <div>
                     {' '}
                     Call Id: {meetingId}, url:
                     http://localhost:3000/video?group=TRUE&&meetingid=
                     {meetingId}{' '}
-                </div>
+                </div> */}
             </>
         ) : (
             <>
@@ -317,16 +399,21 @@ function App() {
             >
                 <MeetingView
                     meetingId={meetingId}
-                    onMeetingLeave={onMeetingLeave}
+                    onMeetingLeave={
+                        searchParams.get('group')
+                            ? onMeetingLeaveGroup
+                            : onMeetingLeave
+                    }
                     recieverImg={recieverImg}
+                    isGroup={searchParams.get('group') ? true : false}
                 />
             </MeetingProvider>
             {/* show call id */}
-            <div>
+            {/* <div>
                 {' '}
                 Call Id: {meetingId}, url:
                 http://localhost:3000/video?group=TRUE&&meetingid={meetingId}{' '}
-            </div>
+            </div> */}
         </>
     ) : (
         <>

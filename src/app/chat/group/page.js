@@ -377,7 +377,7 @@ const ChatApp = () => {
     }
 
     const videoCall = async () => {
-        router.push('/video?createcall=TRUE&&group=TRUE')
+        window.open('/video?createcall=TRUE&&group=TRUE')
     }
 
     return (
