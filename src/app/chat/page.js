@@ -76,6 +76,12 @@ const ChatApp = () => {
         // set reciever details
         setRecieverId(searchParams.get('id'))
 
+        if (!('Notification' in window)) {
+            console.log('Browser does not support desktop notification')
+        } else {
+            Notification.requestPermission()
+        }
+
         return () => {
             socket.off('connect')
             socket.off('disconnect')
@@ -110,7 +116,6 @@ const ChatApp = () => {
             }
         })
     }, [socket, user])
-
     // get messages from socket
     useEffect(() => {
         socket.on('message', (message) => {
@@ -123,6 +128,15 @@ const ChatApp = () => {
                 // if the message is sent by our message reciever to us, only then add it to the list
                 console.log('recieved a message!')
                 messageList.push(message)
+                // Add a push notification here using Navigation API by taking the permission first
+                // The body will contain the message.message and the title will be the name of the sender of the message (message.sender) and the icon will be the image of the sender (message.senderImage)
+               let notificationText = `From ${recieverName}! Message: ${message.message}`
+                new Notification('New Message', {
+                    body: notificationText,
+                    icon: 'https://cdn.icon-icons.com/icons2/3053/PNG/32/whatsapp_alt_macos_bigsur_icon_189553.png',
+                    vibrate: [200, 100, 200],
+                })
+                // new Notification('Chit-Chat', {body: message.message})
             }
             setMessages((messages) => messages.concat(messageList))
         })
